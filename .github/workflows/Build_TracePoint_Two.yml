@@ -1,4 +1,4 @@
-name: Build_TracePoint_Two
+name: Build_security_BBG
 on:
   workflow_dispatch:
     inputs:
@@ -51,6 +51,14 @@ on:
         default: true
         type: boolean
       
+      enable_feature_d:
+         description: "选择Hook挂载方式"
+         required: false
+         type: choice
+         options:
+            - 'Manual_Hook_v1.5'
+            - 'TracePoint_Hook_v1.1'
+         default: 'TracePoint_Hook_v1.1'
 
       enable_feature_b:
          description: "选择网络调度"
@@ -72,10 +80,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: 📊 Check disk space (检查磁盘空间)
-        run: |
-          echo "构建前磁盘空间："
-          df -h
       
       - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
         run: |
@@ -166,6 +170,21 @@ jobs:
                 ;;
             esac
           fi
+
+      - name: 🚀 Maximize Build Space  (最大化构建空间)
+        if: ${{ contains(fromJson('["oneplus_pad_2_pro","realme_GT7pro","realme_GT7pro_Speed"]'), env.DEVICES_NAME) }}
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 4096
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: ⚙️ Set device-specific CCACHE_DIR (设置对应机型Cceche路径)
         run: |
           echo "CCACHE_DIR=$HOME/.ccache_${REPO_MANIFEST}" >> $GITHUB_ENV
@@ -254,7 +273,7 @@ jobs:
          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
 
-      - name: ⚙️ Add SerialID Check (添加SerialID校验)
+      - name: Add SerialID Check (添加SerialID校验)
         if: ${{inputs.enable_feature_a }}
         working-directory: kernel_workspace/kernel_platform/common
         run: |
@@ -271,11 +290,11 @@ jobs:
             echo "已自动插入 serialid_check.c 到 main.c"
           fi
 
-      - name: ⚙️ Set Baseband-guard (配置bbg)
+      - name: Set Baseband-guard (配置bbg)
         run: |
           set -e
           cd kernel_workspace/kernel_platform/common
-          curl -sSL https://github.com/Hivensafe/Baseband-guard/raw/main/setup.sh -o setup.sh
+          curl -sSL https://raw.githubusercontent.com/vc-teahouse/Baseband-guard/main/setup.sh -o setup.sh
           bash setup.sh
           echo >> ./arch/arm64/configs/gki_defconfig
           echo 'CONFIG_BBG=y' >> ./arch/arm64/configs/gki_defconfig
@@ -299,6 +318,8 @@ jobs:
             fi
             ./setup.bin
       - name: 🔧 Set up SUSFS (配置 SUSFS)
+        env:
+          ENABLE_D: ${{ github.event.inputs.enable_feature_d }}
         run: |
           cd kernel_workspace
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android15-6.6
@@ -348,13 +369,16 @@ jobs:
               sed -i '/#include <trace\/hooks\/fs.h>/d' 50_add_susfs_in_gki-android15-6.6.patch
           fi
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
-          echo "SUSFS补丁应用完成 开始应用 TracePoint补丁"
-          cp "${GITHUB_WORKSPACE}/.github/workflows/tools/ksu-trace-fixes-6.6.patch" ./
-          patch -p1 -F 3 < ksu-trace-fixes-6.6.patch
 
-
-
-
+          if [ "${ENABLE_D}" = "Manual_Hook_v1.5" ]; then
+            cp ../../SukiSU_patch/hooks/scope_min_manual_hooks_v1.5.patch ./
+            patch -p1 -F 3 < scope_min_manual_hooks_v1.5.patch
+          fi
+          if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
+            cp "${GITHUB_WORKSPACE}/.github/workflows/tools/ksu-trace-fixes-6.6.patch" ./
+            patch -p1 -F 3 < ksu-trace-fixes-6.6.patch
+          fi
+          echo "${ENABLE_D} 应用完成"
 
 
       - name: 🔧 Cache HMBird patch (缓存HMBird补丁)
@@ -386,15 +410,21 @@ jobs:
       - name: 🔧 Set gki_defconfig (设置编译配置)
         env:
           ENABLE_B: ${{ github.event.inputs.enable_feature_b }} 
-          ENABLE_C: ${{ github.event.inputs.enable_feature_c }}       
+          ENABLE_C: ${{ github.event.inputs.enable_feature_c }}
+          ENABLE_D: ${{ github.event.inputs.enable_feature_d }}       
         run: |
           cd kernel_workspace/kernel_platform
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_TRACEPOINT_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_TRACEPOINT_HOOK_INPUT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_TRACEPOINT_HOOK_DEVPTS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          if [ "$ENABLE_D" = "Manual_Hook_v1.5" ]; then
+            echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
+          fi
+          if [ "$ENABLE_D" = "TracePoint_Hook_v1.1" ]; then
+            echo "CONFIG_KSU_TRACEPOINT_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_KSU_TRACEPOINT_HOOK_INPUT=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_KSU_TRACEPOINT_HOOK_DEVPTS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          fi
           echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4HC=y" >> ./common/arch/arm64/configs/gki_defconfig
