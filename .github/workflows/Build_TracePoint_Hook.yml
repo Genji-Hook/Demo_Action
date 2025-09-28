@@ -1,4 +1,4 @@
-name: Build_security_BBG
+name: Build_TracePoint_Hook
 on:
   workflow_dispatch:
     inputs:
