@@ -45,6 +45,13 @@ on:
         required: false
         default: true
         type: boolean
+      enable_feature_d:
+         description: "选择Hook挂载方式"
+         required: false
+         type: choice
+         options:
+            ['Manual_Hook_v1.5','TracePoint_Hook_v1.1']
+         default: 'TracePoint_Hook_v1.1'
       enable_feature_b:
         description: "选择网络调度"
         required: false
@@ -81,6 +88,10 @@ on:
         required: false
         type: boolean
         default: true
+      enable_feature_d:
+         required: false
+         type: string
+         default: 'TracePoint_Hook_v1.1'
       enable_feature_b:
         required: false
         type: string
@@ -120,6 +131,7 @@ jobs:
           EFZ="${{ inputs.enable_feature_z }}"
           EFA="${{ inputs.enable_feature_a }}"
           EFC="${{ inputs.enable_feature_c }}"
+          EFD="${{ inputs.enable_feature_d || env.enable_feature_d }}"
           EFB="${{ inputs.enable_feature_b || env.enable_feature_b }}"
 
           echo "REPO_MANIFEST=$REPO_MANIFEST" >> $GITHUB_ENV
@@ -129,6 +141,7 @@ jobs:
           echo "enable_feature_z=$EFZ" >> $GITHUB_ENV
           echo "enable_feature_a=$EFA" >> $GITHUB_ENV
           echo "enable_feature_c=$EFC" >> $GITHUB_ENV
+          echo "enable_feature_d=$EFD" >> $GITHUB_ENV
           echo "enable_feature_b=$EFB" >> $GITHUB_ENV
 
       - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
@@ -221,7 +234,7 @@ jobs:
             esac
           fi
           
-      - name: "🚀 Maximize Build Space | 最大化构建空间"
+      - name: 🚀 Maximize Build Space  (最大化构建空间)
         if: ${{ contains(fromJson('["oneplus_pad_2_pro","realme_GT7pro","realme_GT7pro_Speed"]'), env.DEVICES_NAME) }}
         uses: easimon/maximize-build-space@master
         with:
@@ -419,10 +432,15 @@ jobs:
               sed -i '/#include <trace\/hooks\/fs.h>/d' 50_add_susfs_in_gki-android15-6.6.patch
           fi
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
-          cp ../../SukiSU_patch/hooks/scope_min_manual_hooks_v1.5.patch ./
-          patch -p1 -F 3 < scope_min_manual_hooks_v1.5.patch
-          
-          echo "完成"
+          if [ "${ENABLE_D}" = "Manual_Hook_v1.5" ]; then
+            cp ../../SukiSU_patch/hooks/scope_min_manual_hooks_v1.5.patch ./
+            patch -p1 -F 3 < scope_min_manual_hooks_v1.5.patch
+          fi
+          if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
+            cp "${GITHUB_WORKSPACE}/.github/workflows/tools/ksu-trace-fixes-6.6.patch" ./
+            patch -p1 -F 3 < ksu-trace-fixes-6.6.patch
+          fi
+          echo "${ENABLE_D} 应用完成"
 
 
       - name: 🔧 Cache HMBird patch (缓存HMBird补丁)
@@ -453,14 +471,20 @@ jobs:
           
       - name: 🔧 Set gki_defconfig (设置编译配置)
         env:
-          ENABLE_B: ${{ env.enable_feature_b }} 
+          ENABLE_B: ${{ env.enable_feature_b }}
+          ENABLE_D: ${{ env.enable_feature_d }} 
           ENABLE_C: ${{ env.enable_feature_c }}       
         run: |
           cd kernel_workspace/kernel_platform
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
+          if [ "$ENABLE_D" = "Manual_Hook_v1.5" ]; then
+            echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
+          fi
+          if [ "$ENABLE_D" = "TracePoint_Hook_v1.1" ]; then
+            echo "CONFIG_KSU_TRACEPOINT_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
+          fi
           echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4HC=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -509,6 +533,8 @@ jobs:
           echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_TMPFS=y" >> ./common/arch/arm64/configs/gki_defconfig
           #Remove check_defconfig
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
           cd common
@@ -544,7 +570,7 @@ jobs:
         if: ${{env.enable_feature_z }}
         run: |
          cd kernel_workspace/kernel_platform/
-         git clone https://github.com/HanKuCha/sched_ext.git
+         git clone https://github.com/showdo/sched_ext.git
          cp -r ./sched_ext/* ./common/kernel/sched
          rm -rf ./sched_ext/.git
          cd common/kernel/sched 

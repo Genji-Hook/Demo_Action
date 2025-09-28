@@ -38,6 +38,13 @@ on:
         required: false
         type: boolean
         default: true
+      enable_feature_d:
+         description: "选择Hook挂载方式"
+         required: false
+         type: choice
+         options:
+            ['Manual_Hook_v1.5','TracePoint_Hook_v1.1']
+         default: 'TracePoint_Hook_v1.1'
       enable_feature_b:
         description: "选择网络调度"
         required: false
@@ -77,6 +84,7 @@ jobs:
       enable_feature_z: ${{ inputs.enable_feature_z }}
       enable_feature_a: ${{ inputs.enable_feature_a }}
       enable_feature_c: ${{ inputs.enable_feature_c }}
+      enable_feature_d: ${{ inputs.enable_feature_d }}
       enable_feature_b: ${{ inputs.enable_feature_b }}
 
   finalize:
