@@ -290,6 +290,18 @@ jobs:
             echo "已自动插入 serialid_check.c 到 main.c"
           fi
 
+      - name: 应用lz4 1.10.0 & zstd 1.5.7补丁
+        run: |
+          echo "正在添加lz4 1.10.0 & zstd 1.5.7补丁…"
+          cd kernel_workspace
+          git clone https://github.com/cctv18/oppo_oplus_realme_sm8750.git
+          cp ./oppo_oplus_realme_sm8750/zram_patch/001-lz4.patch ./common/
+          cp ./oppo_oplus_realme_sm8750/zram_patch/lz4armv8.S ./common/lib
+          cp ./oppo_oplus_realme_sm8750/zram_patch/002-zstd.patch ./common/
+          cd ./common
+          git apply -p1 < 001-lz4.patch || true
+          patch -p1 < 002-zstd.patch || true
+
       - name: Set Baseband-guard (配置bbg)
         run: |
           set -e
@@ -298,8 +310,9 @@ jobs:
           bash setup.sh
           echo >> ./arch/arm64/configs/gki_defconfig
           echo 'CONFIG_BBG=y' >> ./arch/arm64/configs/gki_defconfig
-          echo 'CONFIG_LSM="landlock,lockdown,yama,loadpin,safesetid,selinux,smack,tomoyo,apparmor,bpf,baseband_guard"' >> ./arch/arm64/configs/gki_defconfig
-  
+          sed -i '/^config LSM$/,/^help$/{ /^[[:space:]]*default/ { /baseband_guard/! s/lockdown/lockdown,baseband_guard/ } }' security/Kconfig
+      
+      
       - name: ⚙️ Set SuKiSU Ultra (设置SuKiSU Ultra)
         run: |
             mkdir -p kernel_workspace/kernel_platform
