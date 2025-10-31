@@ -284,7 +284,7 @@ jobs:
           fi
 
       - name: Set Baseband-guard (配置bbg)
-        if: ${inputs.enable_feature_c}
+        if: ${{inputs.enable_feature_c}}
         run: |
           echo "正在启用启用内核级基带保护支持…"
           cd kernel_workspace
