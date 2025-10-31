@@ -149,15 +149,15 @@ jobs:
 
       - name: ⚙️ Set device-specific CCACHE_DIR (设置对应机型Cceche路径)
         run: |
-          echo "CCACHE_DIR=$HOME/.ccache_${REPO_MANIFEST}" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache_${DEVICES_NAME}" >> $GITHUB_ENV
 
       - name: 📥 Restore ccache (载入 机型：${{ env.DEVICES_NAME }}的 ccache 缓存)
         uses: actions/cache@v3
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ runner.os }}-${{ github.ref }}-${{ env.REPO_MANIFEST }}
+          key: ccache-${{ runner.os }}-${{ github.ref }}-${{ env.DEVICES_NAME }}
           restore-keys: |
-            ccache-${{ runner.os }}-${{ env.REPO_MANIFEST }}-
+            ccache-${{ runner.os }}-${{ env.DEVICES_NAME }}-
             ccache-${{ runner.os }}-
 
       - name: 📥 Init ccache (如果是第一次运行则初始化Cceche)
@@ -167,7 +167,7 @@ jobs:
           export CCACHE_HARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
           export CCACHE_MAXSIZE="8G"
-
+          
           INIT_FLAG="$CCACHE_DIR/.ccache_initialized"
           if command -v ccache >/dev/null 2>&1; then
             if [ ! -f "$INIT_FLAG" ]; then
