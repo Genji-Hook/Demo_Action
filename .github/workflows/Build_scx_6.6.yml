@@ -58,7 +58,7 @@ on:
          options:
             - 'Manual_Hook'
             - 'TracePoint_Hook_v1.1'
-         default: 'TracePoint_Hook_v1.1'
+         default: 'Manual_Hook'
 
       enable_feature_b:
          description: "选择网络调度"
