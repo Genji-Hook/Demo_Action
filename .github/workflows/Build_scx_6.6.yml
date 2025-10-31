@@ -331,24 +331,28 @@ jobs:
           ENABLE_D: ${{ github.event.inputs.enable_feature_d }}
         run: |
           cd kernel_workspace
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android15-6.6
-          git clone https://github.com/SukiSU-Ultra/SukiSU_patch.git
+          echo "正在添加SukiSU Ultra补丁..."
+          git clone https://github.com/ShirkNeko/susfs4ksu.git -b gki-android15-6.6
+          git clone https://github.com/ShirkNeko/SukiSU_patch.git
           cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android15-6.6.patch ./common/
           cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-          cd ./common
-          if [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ] || [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ]; then
-            sed -i 's/^\(SUBLEVEL[[:space:]]*=[[:space:]]*\).*/\166/' ./Makefile
-          fi
-          patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
-          if [ "${ENABLE_D}" = "Manual_Hook" ]; then
-            cp ./SukiSU_patch/hooks/syscall_hooks.patch ./
-            patch -p1 -F 3 < syscall_hooks.patch
-          fi
           if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
-            cp "${GITHUB_WORKSPACE}/.github/workflows/tools/ksu-trace-fixes-6.6.patch" ./
-            patch -p1 -F 3 < ksu-trace-fixes-6.6.patch
+            cp "${GITHUB_WORKSPACE}/.github/workflows/tools/ksu-trace-fixes-6.6.patch" ./common/
           fi
+          if [ "${ENABLE_D}" = "Manual_Hook" ]; then
+            cp ./SukiSU_patch/hooks/syscall_hooks.patch ./common/
+          fi
+          cp ./SukiSU_patch/69_hide_stuff.patch ./common/
+          cd ./common
+          patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
+          if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
+            patch -p1 -F 3 < ksu-trace-fixes-6.6.patch || true
+          fi
+          if [ "${ENABLE_D}" = "Manual_Hook" ]; then
+            patch -p1 < syscall_hooks.patch || true
+          fi
+          patch -p1 < 69_hide_stuff.patch || true
           echo "${ENABLE_D} 应用完成"
 
       - name: 应用lz4 1.10.0 & zstd 1.5.7补丁
