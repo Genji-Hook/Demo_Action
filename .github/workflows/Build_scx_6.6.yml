@@ -33,12 +33,6 @@ on:
         required: false
         default: ''
 
-      enable_feature_z:
-        description: "添加风驰驱动"
-        required: false
-        default: true
-        type: boolean
-
       enable_feature_a:
         description: "开启SerialID校验"
         required: false
@@ -46,7 +40,7 @@ on:
         type: boolean
 
       enable_feature_c:
-        description: "开启BBG防格机"
+        description: "开启BBG基带保护"
         required: false
         default: true
         type: boolean
