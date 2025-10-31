@@ -1,4 +1,4 @@
-name: Build_SCX_6.6
+name: Build_scx_6.6
 on:
   workflow_dispatch:
     inputs:

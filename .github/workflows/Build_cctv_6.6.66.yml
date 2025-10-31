@@ -1,4 +1,4 @@
-name: 加速版构建 6.6.66 欧加真OKI内核
+name: Build_cctv_6.6.66
 
 env:
   TZ: Asia/Shanghai
