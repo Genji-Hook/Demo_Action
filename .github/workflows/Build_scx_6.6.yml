@@ -70,11 +70,12 @@ jobs:
   build:
     name: Build_${{ github.event.inputs.REPO_MANIFEST }}
     runs-on: ubuntu-latest
+    outputs:
+      ksuver: ${{ steps.ksu_version.outputs.ksuver }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
       - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
         run: |
           case "${{ github.event.inputs.REPO_MANIFEST }}" in
@@ -147,39 +148,50 @@ jobs:
             esac
           fi
 
-      - name: ⚙️ Set device-specific CCACHE_DIR (设置对应机型Cceche路径)
+      - name: 配置ccache目录
         run: |
-          echo "CCACHE_DIR=$HOME/.ccache_${DEVICES_NAME}" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache_${{ env.DEVICES_NAME }}" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=3G" >> $GITHUB_ENV
+          echo "当前磁盘空间："
+          df -h
+          echo "当前构建内核机型：${{ env.DEVICES_NAME }}"
 
-      - name: 📥 Restore ccache (载入 机型：${{ env.DEVICES_NAME }}的 ccache 缓存)
-        uses: actions/cache@v3
+      - name: 载入当前版本内核的 ccache缓存
+        uses: actions/cache@v4
+        id: ccache-restore
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ runner.os }}-${{ github.ref }}-${{ env.DEVICES_NAME }}
+          key: ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-main
           restore-keys: |
-            ccache-${{ runner.os }}-${{ env.DEVICES_NAME }}-
-            ccache-${{ runner.os }}-
-
-      - name: 📥 Init ccache (如果是第一次运行则初始化Cceche)
+            ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-
+            ccache-neov2-${{ env.DEVICES_NAME }}-
+      
+      - name: 初始化并配置ccache
         run: |
-          export CCACHE_COMPILERCHECK="%compiler% -dumpmachine; %compiler% -dumpversion"
+          # 设置ccache环境变量
+          export CCACHE_COMPILERCHECK="none"
+          export CCACHE_BASEDIR="${{ github.workspace }}"
           export CCACHE_NOHASHDIR="true"
           export CCACHE_HARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
-          export CCACHE_MAXSIZE="8G"
+          export CCACHE_MAXSIZE="${{ env.CCACHE_MAXSIZE }}"
           
-          INIT_FLAG="$CCACHE_DIR/.ccache_initialized"
-          if command -v ccache >/dev/null 2>&1; then
-            if [ ! -f "$INIT_FLAG" ]; then
-              echo "初始化 ccache ($CCACHE_DIR)..."
-              mkdir -p "$CCACHE_DIR"
-              ccache -M "$CCACHE_MAXSIZE"
-              touch "$INIT_FLAG"
-            else
-              echo "ccache 已初始化，跳过"
-            fi
-          else
-            echo "未安装 ccache，跳过"
+          # 确保ccache目录存在
+          mkdir -p "$CCACHE_DIR"
+          
+          # 每次运行都重新配置缓存大小
+          echo "配置ccache缓存大小为: $CCACHE_MAXSIZE"
+          ccache -M "$CCACHE_MAXSIZE"
+          ccache -o compression=true
+          
+          # 显示初始缓存状态
+          echo "ccache初始状态:"
+          ccache -s
+          
+          # 如果缓存恢复命中，显示详细信息
+          if [ "${{ steps.ccache-restore.outputs.cache-hit }}" == 'true' ]; then
+            echo "ccache缓存命中详情:"
+            ccache -sv
           fi
 
 
@@ -271,6 +283,7 @@ jobs:
           cat "./baseband-guard/sepatch.txt" >> "./selinux/Makefile"
       
       - name: ⚙️ Set SuKiSU Ultra (设置SuKiSU Ultra)
+        id: ksu_version
         run: |
             cd kernel_workspace
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/susfs-main/kernel/setup.sh" -o setup.sh && bash setup.sh susfs-main
