@@ -348,7 +348,7 @@ jobs:
           fi
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
           if [ "${ENABLE_D}" = "Manual_Hook" ]; then
-            cp ../../SukiSU_patch/hooks/syscall_hooks.patch ./
+            cp ./SukiSU_patch/hooks/syscall_hooks.patch ./common/
             patch -p1 -F 3 < syscall_hooks.patch
           fi
           if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
