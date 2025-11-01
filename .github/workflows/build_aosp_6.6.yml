@@ -24,6 +24,7 @@ on:
           - '6.6.92'
           - '6.6.98'
           - '6.6.102'
+          - 'lts'
         default: '6.6.89'
 
       custom_kernel_suffix:
@@ -130,6 +131,8 @@ jobs:
             6.6.102)
               echo "os_patch_level=2025-10" >> $GITHUB_ENV
               ;;
+            lts)
+              echo "os_patch_level=lts" >> $GITHUB_ENV
             
             
           esac
