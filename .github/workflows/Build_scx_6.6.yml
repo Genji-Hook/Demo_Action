@@ -297,11 +297,11 @@ jobs:
             fi
             ./setup.bin
 
-      - name: ⚙️ temp hotfix for SukiSU time64_to_tm redefinition
+      - name: temp hotfix for SukiSU time64_to_tm redefinition
         run: |
           set -e
 
-          # 1. 找到真正的 sulog.c
+          # 1. 找到 sulog.c
           CANDIDATES=(
             "kernel_workspace/common/drivers/kernelsu/sulog.c"
             "kernel_workspace/common/kernel/sulog.c"
@@ -324,39 +324,23 @@ jobs:
 
           echo "[info] patching $TARGET"
 
-          # 2. 看看里面是不是有那条问题定义
+          # 2. 先看有没有那条问题函数
           if ! grep -q 'static inline void time64_to_tm' "$TARGET"; then
-            echo "[info] target file does not contain problematic definition, skip."
+            echo "[info] no problematic definition found, skip."
             exit 0
           fi
 
-          # 3. 把函数名改成不冲突的
+          # 3. 把函数名改掉，避免跟内核声明撞
           sed -i 's/static inline void time64_to_tm(/static inline void ksu_time64_to_tm(/' "$TARGET"
 
-          # 4. 在这行后面塞一个宏，把名字映射回去（只塞一次）
-          python - <<'PY'
-          from pathlib import Path
-          p = Path(r"""$TARGET""".replace("$TARGET", "$TARGET"))
-          # 上面那行是个占位，我们在 shell 里替换不了，就下面再读一次真正路径
-          p = Path("$TARGET")
-          text = p.read_text()
+          # 4. 如果还没有宏，就插一行到刚才那行后面
+          if ! grep -q '#define time64_to_tm ksu_time64_to_tm' "$TARGET"; then
+            # 用 sed 在匹配到的函数定义后面加一行
+            sed -i '/static inline void ksu_time64_to_tm(time64_t totalsecs, int offset, struct tm \*result)/a #define time64_to_tm ksu_time64_to_tm' "$TARGET"
+          fi
 
-          needle = "static inline void ksu_time64_to_tm(time64_t totalsecs, int offset, struct tm *result)\n"
-          if "#define time64_to_tm ksu_time64_to_tm" in text:
-              # 已经打过了
-              raise SystemExit(0)
+          echo "[info] hotfix done."
 
-          if needle not in text:
-              # 说明上游已经重构了，这次就别动了
-              raise SystemExit(0)
-
-          text = text.replace(
-              needle,
-              needle + "#define time64_to_tm ksu_time64_to_tm\n",
-              1,
-          )
-          p.write_text(text)
-          PY
 
 
 
