@@ -1,51 +1,47 @@
-name: Build_scx_6.6
+name: Build_aosp_6.6
+
+env:
+  gz_branch: 'heads'
 on:
   workflow_dispatch:
     inputs:
-      REPO_MANIFEST:
-        description: "📝请选择要编译的机型："
+      sub_level:
+        description: "📝请选择要编译的版本："
         required: true
         type: choice
         options:
-          - 'oneplus_13'
-          - 'oneplus_ace5_pro'
-          - 'oneplus_13t'
-          - 'oneplus_pad_2_pro'
-          - 'oneplus_ace5_ultra'
-          - 'realme_GT7'
-          - 'realme_GT7pro'
-          - 'realme_GT7pro_Speed'
-        default: 'oneplus_ace5_pro'
-
-      keep_original_settings:
-        description: "📝保持原内核名称及构建时间(不懂请保持默认)"
-        required: false
-        default: true
-        type: boolean
+          - '6.6.30'
+          - '6.6.46'
+          - '6.6.50'
+          - '6.6.57'
+          - '6.6.58'
+          - '6.6.66'
+          - '6.6.77'
+          - '6.6.82'
+          - '6.6.87'
+          - '6.6.89'
+          - '6.6.92'
+          - '6.6.98'
+          - '6.6.102'
+        default: '6.6.89'
 
       custom_kernel_suffix:
-        description: "✏️ 自定义内核名称- 仅在取消勾选'保持原设置'时有效(不懂请保持默认)"
+        description: "✏️ 自定义内核名称- '格式如下方示例' "
         required: false
-        default: ''
+        default: '-android15-8-g14220ae4ce65-ab13680582-4k'
       
       custom_kernel_time:
-        description: "⏰ 自定义构建时间- 仅在取消勾选'保持原设置'时有效(不懂请保持默认)"
+        description: "⏰ 自定义构建时间- '格式如下方示例' "
         required: false
-        default: ''
+        default: 'Mon Jun 23 07:30:57 UTC 2025'
 
       enable_feature_a:
-        description: "开启SerialID校验"
-        required: false
-        default: true
-        type: boolean
-
-      enable_feature_c:
         description: "开启BBG基带保护"
         required: false
         default: true
         type: boolean
       
-      enable_feature_d:
+      enable_feature_b:
          description: "选择Hook挂载方式"
          required: false
          type: choice
@@ -54,7 +50,7 @@ on:
             - 'TracePoint_Hook_v1.1'
          default: 'Manual_Hook'
 
-      enable_feature_b:
+      enable_feature_c:
          description: "选择网络调度"
          required: false
          type: choice
@@ -64,11 +60,9 @@ on:
          default: 'FQ_CODEL'
       
        
-
-
 jobs:
   build:
-    name: Build_${{ github.event.inputs.REPO_MANIFEST }}
+    name: Build_${{ github.event.inputs.sub_level }}
     runs-on: ubuntu-latest
     outputs:
       ksuver: ${{ steps.ksu_version.outputs.ksuver }}
@@ -76,78 +70,53 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
+      - name: ⚙️ Set Kernel version config(设置对应内核版本配置文件)
         run: |
-          case "${{ github.event.inputs.REPO_MANIFEST }}" in
-            oneplus_ace5_pro)
-              echo "REPO_MANIFEST=sm8750_v_15.0.2_oneplus_13_6.6.66" >> $GITHUB_ENV
-              echo "DEVICES_NAME=oneplus_ace5_pro" >> $GITHUB_ENV
-              echo "IMAGENAME=Image_Op_Ace_5_Pro" >> $GITHUB_ENV
+          echo "sub_level=${{ github.event.inputs.sub_level }}" >> $GITHUB_ENV
+          case "${{ github.event.inputs.sub_level }}" in
+            6.6.30)
+              echo "os_patch_level=2024-07_r10" >> $GITHUB_ENV
+              echo "gz_branch=tags">> $GITHUB_ENV
               ;;
-            oneplus_13)
-              echo "REPO_MANIFEST=sm8750_v_15.0.2_oneplus_13_6.6.66" >> $GITHUB_ENV
-              echo "DEVICES_NAME=oneplus_13" >> $GITHUB_ENV
-              echo "IMAGENAME=Image_Op_13" >> $GITHUB_ENV
+            6.6.46)
+              echo "os_patch_level=2024-09" >> $GITHUB_ENV
               ;;
-            oneplus_13t)
-              echo "REPO_MANIFEST=sm8750_v_15.0.2_oneplus_13t" >> $GITHUB_ENV
-              echo "DEVICES_NAME=oneplus_13t" >> $GITHUB_ENV
-              echo "IMAGENAME=Image_Op_13_T" >> $GITHUB_ENV
+            6.6.50)
+              echo "os_patch_level=2024-10" >> $GITHUB_ENV
               ;;
-            oneplus_pad_2_pro)
-              echo "REPO_MANIFEST=sm8750_v_15.0.1_pad_2_pro" >> $GITHUB_ENV
-              echo "DEVICES_NAME=oneplus_pad_2_pro" >> $GITHUB_ENV
-              echo "IMAGENAME=Image_Op_Pad_2_Pro_New" >> $GITHUB_ENV
+            6.6.57)
+              echo "os_patch_level=2024-12" >> $GITHUB_ENV
               ;;
-            oneplus_ace5_ultra)
-              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
-              echo "DEVICES_NAME=oneplus_ace5_ultra" >> $GITHUB_ENV
-              echo "IMAGENAME=Image_Op_Ace_5_Ultra" >> $GITHUB_ENV
+            6.6.58)
+              echo "os_patch_level=2025-01" >> $GITHUB_ENV
               ;;
-            realme_GT7)
-              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
-              echo "DEVICES_NAME=realme_GT7" >> $GITHUB_ENV
-              echo "IMAGENAME=Image_Rm_GT_7" >> $GITHUB_ENV
+            6.6.66)
+              echo "os_patch_level=2025-02" >> $GITHUB_ENV
               ;;
-            realme_GT7pro)
-              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
-              echo "DEVICES_NAME=realme_GT7pro" >> $GITHUB_ENV
-              echo "IMAGENAME=Image_Rm_GT_7_Pro" >> $GITHUB_ENV
+            6.6.77)
+              echo "os_patch_level=2025-03" >> $GITHUB_ENV
               ;;
-            realme_GT7pro_Speed)
-              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
-              echo "DEVICES_NAME=realme_GT7pro_Speed" >> $GITHUB_ENV
-              echo "IMAGENAME=Image_Rm_GT_7_Pro_Speed" >> $GITHUB_ENV
+            6.6.82)
+              echo "os_patch_level=2025-04" >> $GITHUB_ENV
               ;;
+            6.6.87)
+              echo "os_patch_level=2025-05" >> $GITHUB_ENV
+              ;;
+            6.6.89)
+              echo "os_patch_level=2025-06" >> $GITHUB_ENV
+              ;;
+            6.6.92)
+              echo "os_patch_level=2025-07" >> $GITHUB_ENV
+              ;;
+            6.6.98)
+              echo "os_patch_level=2025-09" >> $GITHUB_ENV
+              ;;
+            6.6.102)
+              echo "os_patch_level=2025-10" >> $GITHUB_ENV
+              ;;
+            
+            
           esac
-          case "${{ github.event.inputs.REPO_MANIFEST }}" in
-            oneplus_13t)
-              echo 'DEFAULT_SUFFIX=-android15-8-g174d20254551-abogki436492307-4k' >> $GITHUB_ENV
-              ;;
-            oneplus_pad_2_pro)
-              echo 'DEFAULT_SUFFIX=-android15-8-g7b1f455c7143-ab13591283-4k' >> $GITHUB_ENV
-              ;;
-            oneplus_ace5_pro | oneplus_13 | oneplus_ace5_ultra | realme_GT7pro_Speed | realme_GT7 | realme_GT7pro)
-              echo 'DEFAULT_SUFFIX=-android15-8-g29d86c5fc9dd-abogki428889875-4k' >> $GITHUB_ENV
-              ;;
-          esac
-          if [ "${{ github.event.inputs.keep_original_settings }}" = "false" ] && [ -n "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
-            echo "使用自定义构建时间: $CUSTOM_TIME"
-            echo "KERNEL_TIME=$CUSTOM_TIME" >> $GITHUB_ENV
-          else
-            case "${{ github.event.inputs.REPO_MANIFEST }}" in
-              oneplus_13t)
-                echo 'KERNEL_TIME=Tue Aug  5 11:35:17 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_pad_2_pro)
-                echo 'KERNEL_TIME=Tue Jun  3 03:22:33 UTC 2025' >> $GITHUB_ENV
-                ;;
-              oneplus_ace5_pro | oneplus_13 | oneplus_ace5_ultra | realme_GT7pro_Speed | realme_GT7 | realme_GT7pro)
-                echo 'KERNEL_TIME=Tue Jul  1 19:48:18 UTC 2025' >> $GITHUB_ENV
-                ;;
-            esac
-          fi
-
       - name: 🛠 Install dependencies and Initialize repo and sync （安装环境依赖+初始化源码仓库及工具链）
         run: |
           rm -rf kernel_workspace
@@ -161,10 +130,11 @@ jobs:
           sudo apt update &&
           sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev ccache p7zip-full &
           echo "正在克隆源码仓库..."
-          aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip && 
-          unzip -q common.zip && 
-          mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common &&
-          rm -rf common.zip &
+          aria2c -s16 -x16 -k1M "https://android.googlesource.com/kernel/common/+archive/refs/${gz_branch}/android15-6.6-${os_patch_level}.tar.gz" -o common.tar.gz && \
+          mkdir -p common && \
+          tar -xzf common.tar.gz -C common && \
+          rm -f common.tar.gz &
+
           
           echo "正在克隆llvm-clang18工具链..." &&
           mkdir -p clang18 &&
@@ -185,23 +155,24 @@ jobs:
             sed -i 's/ -dirty//g' "$f"
             sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' "$f"
           done
+
       - name: 🛠 Set ccache DIR(配置ccache目录)
         run: |
-          echo "CCACHE_DIR=$HOME/.ccache_${{ env.DEVICES_NAME }}" >> $GITHUB_ENV
+          echo "CCACHE_DIR=$HOME/.ccache_${{ env.sub_level }}" >> $GITHUB_ENV
           echo "CCACHE_MAXSIZE=3G" >> $GITHUB_ENV
           echo "当前磁盘空间："
           df -h
-          echo "当前构建内核机型：${{ env.DEVICES_NAME }}"
+          echo "当前构建内核机型：${{ env.sub_level }}"
 
       - name: 📥 Restore ccache (载入当前机型的ccache缓存)
         uses: actions/cache@v4
         id: ccache-restore
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-main
+          key: ccache-neov2-${{ env.sub_level }}-${{ runner.os }}-main
           restore-keys: |
-            ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-
-            ccache-neov2-${{ env.DEVICES_NAME }}-
+            ccache-neov2-${{ env.sub_level }}-${{ runner.os }}-
+            ccache-neov2-${{ env.sub_level }}-
       
       - name: 📥 Init ccache (初始化并配置ccache)
         run: |
@@ -230,26 +201,8 @@ jobs:
             echo "ccache缓存命中详情:"
             ccache -sv
           fi
-
-      - name: 🛠 Set SerialID Check (添加SerialID校验)
-        if: ${{inputs.enable_feature_a }}
-        working-directory: kernel_workspace/common
-        run: |
-          if grep -q 'SOC_SN_CHECK' init/main.c; then
-            echo "main.c 已包含, 跳过"
-            exit 0
-          else
-            cp "${GITHUB_WORKSPACE}/.github/workflows/tools/serialid_check.c" ./
-            LINE=$(grep -n '^#include' init/main.c | tail -n 1 | cut -d: -f1)
-            head -n "$LINE" init/main.c > init/main.c.patched
-            cat serialid_check.c >> init/main.c.patched
-            tail -n +$((LINE+1)) init/main.c >> init/main.c.patched
-            mv init/main.c.patched init/main.c
-            echo "已自动插入 serialid_check.c 到 main.c"
-          fi
-
       - name: 🛠 Set Baseband-guard (配置BBG基带守护)
-        if: ${{inputs.enable_feature_c}}
+        if: ${{inputs.enable_feature_a}}
         run: |
           echo "正在启用启用内核级基带保护支持…"
           cd kernel_workspace
@@ -297,10 +250,9 @@ jobs:
             fi
             ./setup.bin
 
-
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         env:
-          ENABLE_D: ${{ github.event.inputs.enable_feature_d }}
+          ENABLE_B: ${{ github.event.inputs.enable_feature_b }}
         run: |
           cd kernel_workspace
           echo "正在添加SukiSU Ultra补丁..."
@@ -309,29 +261,24 @@ jobs:
           cp ./susfs4ksu/kernel_patches/50_add_susfs_in_gki-android15-6.6.patch ./common/
           cp ./susfs4ksu/kernel_patches/fs/* ./common/fs/
           cp ./susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
-          if [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ] || [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ]; then
-            sed -i 's/^\(SUBLEVEL[[:space:]]*=[[:space:]]*\).*/\166/' ./common/Makefile
-          fi
-          if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
+          if [ "${ENABLE_B}" = "TracePoint_Hook_v1.1" ]; then
             cp "${GITHUB_WORKSPACE}/.github/workflows/tools/ksu-trace-fixes-6.6.patch" ./common/
           fi
-          if [ "${ENABLE_D}" = "Manual_Hook" ]; then
+          if [ "${ENABLE_B}" = "Manual_Hook" ]; then
             cp ./SukiSU_patch/hooks/syscall_hooks.patch ./common/
           fi
           cp ./SukiSU_patch/69_hide_stuff.patch ./common/
           cd ./common
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
-          if [ "${DEVICES_NAME}" = "oneplus_pad_2_pro" ] || [ "${DEVICES_NAME}" = "oneplus_13t" ]; then
-            sed -i 's|vma = find_vma(mm|struct vm_area_struct *&|' ./fs/proc/task_mmu.c
-          fi
-          if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
+          
+          if [ "${ENABLE_B}" = "TracePoint_Hook_v1.1" ]; then
             patch -p1 -F 3 < ksu-trace-fixes-6.6.patch || true
           fi
-          if [ "${ENABLE_D}" = "Manual_Hook" ]; then
+          if [ "${ENABLE_B}" = "Manual_Hook" ]; then
             patch -p1 < syscall_hooks.patch || true
           fi
           patch -p1 < 69_hide_stuff.patch || true
-          echo "${ENABLE_D} 应用完成"
+          echo "${ENABLE_B} 应用完成"
 
       - name: ⚙️ apply lz4 lz4 1.10.0 & zstd 1.5.7 Patch (应用lz4 1.10.0 & zstd 1.5.7补丁)
         run: |
@@ -349,16 +296,16 @@ jobs:
       - name: 🔧 Set gki_defconfig (设置编译配置)
         env:
           ENABLE_B: ${{ github.event.inputs.enable_feature_b }} 
-          ENABLE_D: ${{ github.event.inputs.enable_feature_d }}       
+          ENABLE_C: ${{ github.event.inputs.enable_feature_c }}       
         run: |
           cd kernel_workspace
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
-          if [ "$ENABLE_D" = "Manual_Hook" ]; then
+          if [ "$ENABLE_B" = "Manual_Hook" ]; then
             echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
-          if [ "$ENABLE_D" = "TracePoint_Hook_v1.1" ]; then
+          if [ "$ENABLE_B" = "TracePoint_Hook_v1.1" ]; then
             echo "CONFIG_KSU_TRACEPOINT_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_KSU_TRACEPOINT_HOOK_INPUT=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_KSU_TRACEPOINT_HOOK_DEVPTS=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -373,7 +320,7 @@ jobs:
           echo "CONFIG_F2FS_FS_LZ4HC=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_F2FS_FS_ZSTD=y" >> ./common/arch/arm64/configs/gki_defconfig
 
-          if [ "$ENABLE_B" = "BBR" ]; then
+          if [ "$ENABLE_C" = "BBR" ]; then
             echo "CONFIG_TCP_CONG_ADVANCED=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_TCP_CONG_BBR=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_NET_SCH_FQ=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -383,7 +330,7 @@ jobs:
             echo "CONFIG_TCP_CONG_HTCP=n" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_DEFAULT_TCP_CONG=bbr" >> ./common/arch/arm64/configs/gki_defconfig
           fi
-          if [ "$ENABLE_B" = "FQ_CODEL" ]; then
+          if [ "$ENABLE_C" = "FQ_CODEL" ]; then
             echo "CONFIG_NET_SCH_FQ_CODEL=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_NET_SCH_FQ=y" >> ./common/arch/arm64/configs/gki_defconfig
             echo "CONFIG_NET_SCH_SFQ=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -418,37 +365,13 @@ jobs:
           #Remove check_defconfig
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
 
-
-      - name: ⚙️ enable ADIOS IO (启用ADIOS IO调度器)
-        run: |
-          echo "正在启用ADIOS IO调度器(将截止时间优先调度算法与基于自主学习的自适应延迟控制算法相结合, 降低I/O延迟)…"
-          cd kernel_workspace
-          echo "CONFIG_MQ_IOSCHED_ADIOS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MQ_IOSCHED_DEFAULT_ADIOS=y" >> ./common/arch/arm64/configs/gki_defconfig
-
       - name: 🔧 Set Kernel name (写入内核名称)
         env:
-          REPO_MANIFEST: ${{ github.event.inputs.REPO_MANIFEST }}
-          KEEP_ORIGINAL: ${{ github.event.inputs.keep_original_settings }}
           CUSTOM_SUFFIX: ${{ github.event.inputs.custom_kernel_suffix }}
         run: |
           cd kernel_workspace
-          echo "当前机型: $DEVICES_NAME"
-          echo "保持原设置: $KEEP_ORIGINAL"
           echo "自定义后缀: $CUSTOM_SUFFIX"
-          echo "默认后缀: $DEFAULT_SUFFIX"
-          
-          if [ "$KEEP_ORIGINAL" = "false" ]; then
-            if [ -n "$CUSTOM_SUFFIX" ]; then
-              DEFAULT_SUFFIX="$CUSTOM_SUFFIX"
-              echo "使用自定义内核名称: $DEFAULT_SUFFIX"
-            else
-              echo "使用机型默认内核名称: $DEFAULT_SUFFIX"
-            fi
-          else
-            echo "保持原内核名称设置"
-          fi
-          ESCAPED_SUFFIX=$(printf '%s\n' "$DEFAULT_SUFFIX" | sed 's:[\/&]:\\&:g')
+          ESCAPED_SUFFIX=$(printf '%s\n' "$CUSTOM_SUFFIX" | sed 's:[\/&]:\\&:g')
           sudo sed -i "s/-4k/$ESCAPED_SUFFIX/g" ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/${scm_version}//' ./common/scripts/setlocalversion
 
