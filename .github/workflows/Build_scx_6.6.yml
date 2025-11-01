@@ -296,6 +296,26 @@ jobs:
               exit 1
             fi
             ./setup.bin
+
+      - name: apply sukiSU PR #509 (temporary)
+        run: |
+          set -e
+          # 1. 把 PR 的 patch 拉下来
+          curl -L https://github.com/SukiSU-Ultra/SukiSU-Ultra/pull/509.patch -o /tmp/sukisu-509.patch
+          cd kernel_workspace/common
+          # 2. 先试着直接打（适配官方路径: kernel/...）
+          if patch -p1 --dry-run < /tmp/sukisu-509.patch >/dev/null 2>&1; then
+            echo "[info] applying patch as-is (kernel/*)"
+            patch -p1 < /tmp/sukisu-509.patch
+          else
+            echo "[info] tree layout differs, rewriting paths to drivers/kernelsu/* ..."
+            # 你的树可能是 drivers/kernelsu/sulog.c，不是 kernel/sulog.c
+            sed 's|a/kernel/sulog.c|a/drivers/kernelsu/sulog.c|; s|b/kernel/sulog.c|b/drivers/kernelsu/sulog.c|' \
+              /tmp/sukisu-509.patch > /tmp/sukisu-509-fixed.patch
+            patch -p1 < /tmp/sukisu-509-fixed.patch
+          fi
+
+
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         env:
           ENABLE_D: ${{ github.event.inputs.enable_feature_d }}
