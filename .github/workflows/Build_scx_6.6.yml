@@ -148,7 +148,7 @@ jobs:
             esac
           fi
 
-      - name: 安装环境依赖+初始化源码仓库及llvm-Clang18工具链
+      - name: 🛠 Install dependencies and Initialize repo and sync （安装环境依赖+初始化源码仓库及工具链）
         run: |
           rm -rf kernel_workspace
           mkdir kernel_workspace
@@ -185,7 +185,7 @@ jobs:
             sed -i 's/ -dirty//g' "$f"
             sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' "$f"
           done
-      - name: 配置ccache目录
+      - name: 🛠 Set ccache DIR(配置ccache目录)
         run: |
           echo "CCACHE_DIR=$HOME/.ccache_${{ env.DEVICES_NAME }}" >> $GITHUB_ENV
           echo "CCACHE_MAXSIZE=3G" >> $GITHUB_ENV
@@ -193,7 +193,7 @@ jobs:
           df -h
           echo "当前构建内核机型：${{ env.DEVICES_NAME }}"
 
-      - name: 载入当前版本内核的 ccache缓存
+      - name: 📥 Restore ccache (载入当前机型的ccache缓存)
         uses: actions/cache@v4
         id: ccache-restore
         with:
@@ -203,7 +203,7 @@ jobs:
             ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-
             ccache-neov2-${{ env.DEVICES_NAME }}-
       
-      - name: 初始化并配置ccache
+      - name: 📥 Init ccache (初始化并配置ccache)
         run: |
           # 设置ccache环境变量
           export CCACHE_COMPILERCHECK="none"
@@ -231,7 +231,7 @@ jobs:
             ccache -sv
           fi
 
-      - name: Add SerialID Check (添加SerialID校验)
+      - name: 🛠 Set SerialID Check (添加SerialID校验)
         if: ${{inputs.enable_feature_a }}
         working-directory: kernel_workspace/common
         run: |
@@ -248,7 +248,7 @@ jobs:
             echo "已自动插入 serialid_check.c 到 main.c"
           fi
 
-      - name: Set Baseband-guard (配置bbg)
+      - name: 🛠 Set Baseband-guard (配置BBG基带守护)
         if: ${{inputs.enable_feature_c}}
         run: |
           echo "正在启用启用内核级基带保护支持…"
@@ -297,7 +297,7 @@ jobs:
             fi
             ./setup.bin
 
-      - name: temp hotfix for SukiSU time64_to_tm redefinition
+      - name: ⚙️ temp hotfix for SukiSU time64_to_tm redefinition
         run: |
           set -e
 
@@ -395,7 +395,7 @@ jobs:
           patch -p1 < 69_hide_stuff.patch || true
           echo "${ENABLE_D} 应用完成"
 
-      - name: 应用lz4 1.10.0 & zstd 1.5.7补丁
+      - name: ⚙️ apply lz4 lz4 1.10.0 & zstd 1.5.7 Patch (应用lz4 1.10.0 & zstd 1.5.7补丁)
         run: |
           echo "正在添加lz4 1.10.0 & zstd 1.5.7补丁…"
           cd kernel_workspace
@@ -481,7 +481,7 @@ jobs:
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
 
 
-      - name: 启用ADIOS IO调度器
+      - name: ⚙️ enable ADIOS IO (启用ADIOS IO调度器)
         run: |
           echo "正在启用ADIOS IO调度器(将截止时间优先调度算法与基于自主学习的自适应延迟控制算法相结合, 降低I/O延迟)…"
           cd kernel_workspace
