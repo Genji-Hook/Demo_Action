@@ -286,6 +286,11 @@ jobs:
           cp ./SukiSU_patch/69_hide_stuff.patch ./common/
           cd ./common
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
+          case "$sub_level" in
+            6.6.30|6.6.46|6.6.50|6.6.56|6.6.57|6.6.58)
+              sed -i 's|vma = find_vma(mm|struct vm_area_struct *&|' ./fs/proc/task_mmu.c
+              ;;
+          esac
           
           if [ "${ENABLE_B}" = "TracePoint_Hook_v1.1" ]; then
             patch -p1 -F 3 < ksu-trace-fixes-6.6.patch || true
