@@ -297,23 +297,67 @@ jobs:
             fi
             ./setup.bin
 
-      - name: apply sukiSU PR #509 (temporary)
+      - name: temp hotfix for SukiSU time64_to_tm redefinition
         run: |
           set -e
-          # 1. 把 PR 的 patch 拉下来
-          curl -L https://github.com/SukiSU-Ultra/SukiSU-Ultra/pull/509.patch -o /tmp/sukisu-509.patch
-          cd kernel_workspace/common
-          # 2. 先试着直接打（适配官方路径: kernel/...）
-          if patch -p1 --dry-run < /tmp/sukisu-509.patch >/dev/null 2>&1; then
-            echo "[info] applying patch as-is (kernel/*)"
-            patch -p1 < /tmp/sukisu-509.patch
-          else
-            echo "[info] tree layout differs, rewriting paths to drivers/kernelsu/* ..."
-            # 你的树可能是 drivers/kernelsu/sulog.c，不是 kernel/sulog.c
-            sed 's|a/kernel/sulog.c|a/drivers/kernelsu/sulog.c|; s|b/kernel/sulog.c|b/drivers/kernelsu/sulog.c|' \
-              /tmp/sukisu-509.patch > /tmp/sukisu-509-fixed.patch
-            patch -p1 < /tmp/sukisu-509-fixed.patch
+
+          # 1. 找到真正的 sulog.c
+          CANDIDATES=(
+            "kernel_workspace/common/drivers/kernelsu/sulog.c"
+            "kernel_workspace/common/kernel/sulog.c"
+            "drivers/kernelsu/sulog.c"
+            "kernel/sulog.c"
+          )
+
+          TARGET=""
+          for f in "${CANDIDATES[@]}"; do
+            if [ -f "$f" ]; then
+              TARGET="$f"
+              break
+            fi
+          done
+
+          if [ -z "$TARGET" ]; then
+            echo "[warn] cannot find sulog.c, skip hotfix."
+            exit 0
           fi
+
+          echo "[info] patching $TARGET"
+
+          # 2. 看看里面是不是有那条问题定义
+          if ! grep -q 'static inline void time64_to_tm' "$TARGET"; then
+            echo "[info] target file does not contain problematic definition, skip."
+            exit 0
+          fi
+
+          # 3. 把函数名改成不冲突的
+          sed -i 's/static inline void time64_to_tm(/static inline void ksu_time64_to_tm(/' "$TARGET"
+
+          # 4. 在这行后面塞一个宏，把名字映射回去（只塞一次）
+          python - <<'PY'
+          from pathlib import Path
+          p = Path(r"""$TARGET""".replace("$TARGET", "$TARGET"))
+          # 上面那行是个占位，我们在 shell 里替换不了，就下面再读一次真正路径
+          p = Path("$TARGET")
+          text = p.read_text()
+
+          needle = "static inline void ksu_time64_to_tm(time64_t totalsecs, int offset, struct tm *result)\n"
+          if "#define time64_to_tm ksu_time64_to_tm" in text:
+              # 已经打过了
+              raise SystemExit(0)
+
+          if needle not in text:
+              # 说明上游已经重构了，这次就别动了
+              raise SystemExit(0)
+
+          text = text.replace(
+              needle,
+              needle + "#define time64_to_tm ksu_time64_to_tm\n",
+              1,
+          )
+          p.write_text(text)
+          PY
+
 
 
       - name: 🔧 Set up SUSFS (配置 SUSFS)
