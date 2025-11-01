@@ -460,18 +460,6 @@ jobs:
           echo "编译后空间:"
           df -h
       
-      
-      - name: 📦 ReName Image  (修改镜像名)
-        run: |
-          cd kernel_workspace/common/out/arch/arm64/boot
-          cp ./Image "./${IMAGENAME}"
-
-      - name: 📤 Upload Image (上传 Image)
-        uses: actions/upload-artifact@v4
-        with:
-         name: ${{ env.IMAGENAME }}
-         path: kernel_workspace/common/out/arch/arm64/boot/${{ env.IMAGENAME }}
-        
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
           git clone https://github.com/showdo/AnyKernel3.git --depth=1      
@@ -484,5 +472,5 @@ jobs:
       - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
         uses: actions/upload-artifact@v4
         with:
-         name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_SuKiSU
+         name: AK3_${{ env.KSUVER }}_${{ env.sub_level }}_SuKiSU
          path: ./AnyKernel3/*
