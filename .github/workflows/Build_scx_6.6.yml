@@ -90,7 +90,7 @@ jobs:
               echo "IMAGENAME=Image_Op_13" >> $GITHUB_ENV
               ;;
             oneplus_13t)
-              echo "REPO_MANIFEST=sm8750_v_15.0.2_oneplus_13t" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_13t" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_13_T" >> $GITHUB_ENV
               ;;
