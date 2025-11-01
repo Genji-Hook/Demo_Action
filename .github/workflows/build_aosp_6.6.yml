@@ -40,6 +40,12 @@ on:
         required: false
         default: true
         type: boolean
+
+      enable_feature_d:
+        description: "使用AOSP密钥签名boot"
+        required: false
+        default: true
+        type: boolean
       
       enable_feature_b:
          description: "选择Hook挂载方式"
@@ -49,12 +55,6 @@ on:
             - 'Manual_Hook'
             - 'TracePoint_Hook_v1.1'
          default: 'Manual_Hook'
-
-      enable_feature_d:
-        description: "使用AOSP密钥签名boot"
-        required: false
-        default: true
-        type: boolean
 
       enable_feature_c:
          description: "选择网络调度"
@@ -518,4 +518,15 @@ jobs:
           rm -f boot_avb_tool.tar.gz && \
           cp ./common/out/arch/arm64/boot/Image ./boot_avb_tool/AOSP_REBUILD_AVB_BOOT-main/kernel
           cd boot_avb_tool/AOSP_REBUILD_AVB_BOOT-main && \
-          
+          curl -L -o boot.img https://github.com/Genji-Hook/AOSP_REBUILD_AVB_BOOT/releases/download/TB322FC_1.1.11.202/boot.img
+          ./magiskboot repack boot.img
+          rm -f ./boot.img kernel
+          mv ./new-boot.img ./boot.img
+          ./tools\python-3.8.0\python.exe  rebuild_avb.py --chained-mode
+
+      - name: 📤 Upload Signed boot (上传已签名的 boot)
+        if: ${{inputs.enable_feature_d}}
+        uses: actions/upload-artifact@v4
+        with:
+         name: Boot_${{ env.KSUVER }}_${{ env.sub_level }}_SuKiSU_AOSP_Signed
+         path: kernel_workspace/boot_avb_tool/AOSP_REBUILD_AVB_BOOT-main/boot.img
