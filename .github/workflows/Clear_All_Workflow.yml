@@ -12,6 +12,7 @@ on:
           - Build_Action
           - Build_All_release
           - Build_scx_6.6
+          - Build_aosp_6.6
           - Build_cctv_6.6.66
           - Build_TracePoint_Hook
           - Build_security_BBG
