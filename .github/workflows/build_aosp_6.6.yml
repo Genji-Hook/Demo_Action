@@ -50,6 +50,12 @@ on:
             - 'TracePoint_Hook_v1.1'
          default: 'Manual_Hook'
 
+      enable_feature_d:
+        description: "使用AOSP密钥签名boot"
+        required: false
+        default: true
+        type: boolean
+
       enable_feature_c:
          description: "选择网络调度"
          required: false
@@ -58,6 +64,7 @@ on:
             - 'FQ_CODEL'
             - 'BBR'
          default: 'FQ_CODEL'
+        
       
        
 jobs:
@@ -72,7 +79,12 @@ jobs:
           fetch-depth: 0
       - name: ⚙️ Set Kernel version config(设置对应内核版本配置文件)
         run: |
+          if [ -z "${{ github.event.inputs.custom_kernel_time }}" ] || [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
+            echo "内核名称 或 构建时间 为空，停止构建。"
+            exit 1
+          fi
           echo "sub_level=${{ github.event.inputs.sub_level }}" >> $GITHUB_ENV
+          echo "KERNEL_TIME=${{ github.event.inputs.custom_kernel_time }}" >> $GITHUB_ENV
           case "${{ github.event.inputs.sub_level }}" in
             6.6.30)
               echo "os_patch_level=2024-07_r10" >> $GITHUB_ENV
@@ -459,7 +471,28 @@ jobs:
           ccache -s
           echo "编译后空间:"
           df -h
-      
+
+      - name: 📦 Apply KPM and patch the kernel (应用KPM并修补内核)
+        run: |
+          echo "正在应用KPM并修补内核..."
+          cd kernel_workspace/common/out/arch/arm64/boot
+          curl -LO https://github.com/ShirkNeko/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux
+          chmod +x patch_linux
+          ./patch_linux
+          rm -f Image
+          mv oImage Image
+
+      - name: 📦 ReName Image  (修改镜像名)
+        run: |
+          cd kernel_workspace/common/out/arch/arm64/boot
+          cp ./Image "./kernel"
+
+      - name: 📤 Upload Image (上传 Image)
+        uses: actions/upload-artifact@v4
+        with:
+         name: kernel_image
+         path: kernel_workspace/common/out/arch/arm64/boot/kernel
+
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
           git clone https://github.com/showdo/AnyKernel3.git --depth=1      
@@ -474,3 +507,15 @@ jobs:
         with:
          name: AK3_${{ env.KSUVER }}_${{ env.sub_level }}_SuKiSU
          path: ./AnyKernel3/*
+
+      - name: 📦 Sign boot using AOSP test key (使用AOSP测试密钥签名boot)
+        if: ${{inputs.enable_feature_d}}
+        run: |
+          cd kernel_workspace
+          aria2c -s16 -x16 -k1M "https://github.com/Genji-Hook/AOSP_REBUILD_AVB_BOOT/archive/refs/heads/main.tar.gz" -o boot_avb_tool.tar.gz && \
+          mkdir -p boot_avb_tool && \
+          tar -xzf boot_avb_tool.tar.gz -C boot_avb_tool && \
+          rm -f boot_avb_tool.tar.gz && \
+          cp ./common/out/arch/arm64/boot/Image ./boot_avb_tool/AOSP_REBUILD_AVB_BOOT-main/kernel
+          cd boot_avb_tool/AOSP_REBUILD_AVB_BOOT-main && \
+          
