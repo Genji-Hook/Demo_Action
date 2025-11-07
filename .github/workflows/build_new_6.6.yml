@@ -1,12 +1,13 @@
-name: Build_scx_6.6
+name: Build_new_6.6
 on:
   workflow_dispatch:
     inputs:
       REPO_MANIFEST:
-        description: "📝请选择要编译的机型："
+        description: "📝请选择要编译的内核版本："
         required: true
         type: choice
         options:
+          - 'oneplus_ace6'
           - 'oneplus_13'
           - 'oneplus_ace5_pro'
           - 'oneplus_13t'
@@ -80,20 +81,25 @@ jobs:
         run: |
           case "${{ github.event.inputs.REPO_MANIFEST }}" in
             oneplus_ace5_pro)
-              echo "REPO_MANIFEST=sm8750_v_15.0.2_oneplus_13_6.6.66" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_ace5_pro" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_ace5_pro" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Ace_5_Pro" >> $GITHUB_ENV
               ;;
             oneplus_13)
-              echo "REPO_MANIFEST=sm8750_v_15.0.2_oneplus_13_6.6.66" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_13" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_13" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_13" >> $GITHUB_ENV
               ;;
             oneplus_13t)
-              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_13t" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_13t" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_13_T" >> $GITHUB_ENV
               ;;
+            oneplus_ace6)
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_ace_6" >> $GITHUB_ENV
+              echo "DEVICES_NAME=oneplus_ace6" >> $GITHUB_ENV
+              echo "IMAGENAME=Image_Op_Ace_6" >> $GITHUB_ENV
+              ;;              
             oneplus_pad_2_pro)
               echo "REPO_MANIFEST=sm8750_v_15.0.1_pad_2_pro" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_pad_2_pro" >> $GITHUB_ENV
@@ -161,7 +167,7 @@ jobs:
           sudo apt update &&
           sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev ccache p7zip-full &
           echo "正在克隆源码仓库..."
-          aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip && 
+          aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip && 
           unzip -q common.zip && 
           mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common &&
           rm -rf common.zip &
@@ -198,10 +204,10 @@ jobs:
         id: ccache-restore
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-main
+          key: ccache-neov4-${{ env.DEVICES_NAME }}-${{ runner.os }}-main
           restore-keys: |
-            ccache-neov2-${{ env.DEVICES_NAME }}-${{ runner.os }}-
-            ccache-neov2-${{ env.DEVICES_NAME }}-
+            ccache-neov4-${{ env.DEVICES_NAME }}-${{ runner.os }}-
+            ccache-neov4-${{ env.DEVICES_NAME }}-
       
       - name: 📥 Init ccache (初始化并配置ccache)
         run: |
