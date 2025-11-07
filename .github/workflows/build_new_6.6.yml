@@ -268,8 +268,7 @@ jobs:
         id: ksu_version
         run: |
             cd kernel_workspace
-            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/susfs-main/kernel/setup.sh" -o setup.sh && bash setup.sh susfs-main
-            cd KernelSU
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
             KSU_VERSION=$(expr $(git rev-list --count main 2>/dev/null || echo 13000) + 37185)
             echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
              cp "${GITHUB_WORKSPACE}/.github/workflows/tools/setup.bin" ./
@@ -345,8 +344,8 @@ jobs:
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
-          if [ "$ENABLE_D" = "Manual_Hook_v1.6" ]; then
-            echo "CONFIG_KSU_Manual_Hook_v1.6=y" >> ./common/arch/arm64/configs/gki_defconfig
+          if [ "$ENABLE_D" = "Manual_Hook_v1.6" ] || [ "${ENABLE_D}" = "Syscall_Hook" ]; then
+            echo "CONFIG_KSU_Manual_Hook=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
           if [ "$ENABLE_D" = "TracePoint_Hook_v1.1" ]; then
             echo "CONFIG_KSU_TRACEPOINT_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
