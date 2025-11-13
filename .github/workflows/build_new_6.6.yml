@@ -163,7 +163,11 @@ jobs:
           sudo apt update &&
           sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev ccache p7zip-full &
           echo "正在克隆源码仓库..."
-          aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip && 
+          if [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "oneplus_13t" ] || [ "${DEVICES_NAME}" = "realme_GT7" ] || [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ]; then
+            aria2c -s16 -x16 -k1M https://github.com/TheGeniusClub/android_kernel_common_oneplus_sm8750/archive/refs/heads/${REPO_MANIFEST}.zip -o common.zip
+          else
+            aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
+          fi
           unzip -q common.zip && 
           mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common &&
           rm -rf common.zip &
