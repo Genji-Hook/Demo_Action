@@ -97,7 +97,7 @@ jobs:
               echo "IMAGENAME=Image_Op_13_T" >> $GITHUB_ENV
               ;;
             oneplus_pad_2_pro)
-              echo "REPO_MANIFEST=sm8750_v_15.0.1_pad_2_pro" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_pad_2_pro" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Pad_2_Pro_New" >> $GITHUB_ENV
               ;;
