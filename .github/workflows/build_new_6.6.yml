@@ -168,9 +168,11 @@ jobs:
           else
             aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
           fi
-          unzip -q common.zip && 
+          unzip -q common.zip &&
+          ls &&
+          exit 0
           mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common &&
-          rm -rf common.zip &
+          rm -rf common.zip 
           
           echo "正在克隆llvm-clang18工具链..." &&
           mkdir -p clang18 &&
