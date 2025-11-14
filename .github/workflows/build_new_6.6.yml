@@ -271,10 +271,11 @@ jobs:
         run: |
             # 运行 SukiSU 的安装脚本
             cd kernel_workspace
-            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/4b1bbda3b1ea31f22b86d3cb1ede19b1ea154d9d/kernel/setup.sh" | bash -s 0da8ecb07144f09ae51bcb46bdf1f08a81794776
+
 
             # 计算 KSU 版本号——建议从 KernelSU 仓库数提交，避免在非 git 根目录时取不到
-            KSU_VERSION=$(expr $(git -C KernelSU rev-list --count main 2>/dev/null || echo 13000) + 37185)
+            KSU_VERSION=$(expr $(git -C KernelSU rev-list --count main 2>/dev/null || echo 13000) + 10700)
             echo "KSUVER=$KSU_VERSION" >> "$GITHUB_ENV"
 
             # 自适应定位内核根目录 & 补软链
