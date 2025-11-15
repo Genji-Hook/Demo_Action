@@ -82,42 +82,42 @@ jobs:
         run: |
           case "${{ github.event.inputs.REPO_MANIFEST }}" in
             oneplus_ace5_pro)
-              echo "REPO_MANIFEST=sm8750_v_15.0.2_oneplus_13_6.6.66" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_15.0.2_oneplus_13_6.6.66" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_ace5_pro" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Ace_5_Pro" >> $GITHUB_ENV
               ;;
             oneplus_13)
-              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_13" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_13" >> $GITHUB_ENV
               ;;
             oneplus_13t)
-              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_13t" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_13_T" >> $GITHUB_ENV
               ;;
             oneplus_pad_2_pro)
-              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_pad_2_pro" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Pad_2_Pro_New" >> $GITHUB_ENV
               ;;
             oneplus_ace5_ultra)
-              echo "REPO_MANIFEST=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_ace5_ultra" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Ace_5_Ultra" >> $GITHUB_ENV
               ;;
             realme_GT7)
-              echo "REPO_MANIFEST=14" >> $GITHUB_ENV
+              echo "REPO_BRANCH=14" >> $GITHUB_ENV
               echo "DEVICES_NAME=realme_GT7" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Rm_GT_7" >> $GITHUB_ENV
               ;;
             realme_GT7pro)
-              echo "REPO_MANIFEST=14" >> $GITHUB_ENV
+              echo "REPO_BRANCH=14" >> $GITHUB_ENV
               echo "DEVICES_NAME=realme_GT7pro" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Rm_GT_7_Pro" >> $GITHUB_ENV
               ;;
             realme_GT7pro_Speed)
-              echo "REPO_MANIFEST=14" >> $GITHUB_ENV
+              echo "REPO_BRANCH=14" >> $GITHUB_ENV
               echo "DEVICES_NAME=realme_GT7pro_Speed" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Rm_GT_7_Pro_Speed" >> $GITHUB_ENV
               ;;
@@ -164,13 +164,13 @@ jobs:
           sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev ccache p7zip-full &
           echo "正在克隆源码仓库..."
           if [ "${DEVICES_NAME}" = "realme_GT7" ] || [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ]; then
-            aria2c -s16 -x16 -k1M https://github.com/TheGeniusClub/android_kernel_common_oneplus_sm8750/archive/refs/heads/v${REPO_MANIFEST}.zip -o common.zip
+            aria2c -s16 -x16 -k1M https://github.com/TheGeniusClub/android_kernel_common_oneplus_sm8750/archive/refs/heads/v${REPO_BRANCH}.zip -o common.zip
             unzip -q common.zip &&
-            mv "android_kernel_common_oneplus_sm8750-${REPO_MANIFEST}" common         
+            mv "android_kernel_common_oneplus_sm8750-${REPO_BRANCH}" common         
           else
-            aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
+            aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_BRANCH}.zip -o common.zip
             unzip -q common.zip && 
-            mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common
+            mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_BRANCH}" common
           fi
           
           rm -rf common.zip 
@@ -456,16 +456,15 @@ jobs:
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
 
 
-      # - name: ⚙️ enable ADIOS IO (启用ADIOS IO调度器)
-      #   run: |
-      #     echo "正在启用ADIOS IO调度器(将截止时间优先调度算法与基于自主学习的自适应延迟控制算法相结合, 降低I/O延迟)…"
-      #     cd kernel_workspace
-      #     echo "CONFIG_MQ_IOSCHED_ADIOS=y" >> ./common/arch/arm64/configs/gki_defconfig
-      #     echo "CONFIG_MQ_IOSCHED_DEFAULT_ADIOS=y" >> ./common/arch/arm64/configs/gki_defconfig
+      - name: ⚙️ enable ADIOS IO (启用ADIOS IO调度器)
+        run: |
+          echo "正在启用ADIOS IO调度器(将截止时间优先调度算法与基于自主学习的自适应延迟控制算法相结合, 降低I/O延迟)…"
+          cd kernel_workspace
+          echo "CONFIG_MQ_IOSCHED_ADIOS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MQ_IOSCHED_DEFAULT_ADIOS=y" >> ./common/arch/arm64/configs/gki_defconfig
 
       - name: 🔧 Set Kernel name (写入内核名称)
         env:
-          REPO_MANIFEST: ${{ github.event.inputs.REPO_MANIFEST }}
           KEEP_ORIGINAL: ${{ github.event.inputs.keep_original_settings }}
           CUSTOM_SUFFIX: ${{ github.event.inputs.custom_kernel_suffix }}
         run: |
