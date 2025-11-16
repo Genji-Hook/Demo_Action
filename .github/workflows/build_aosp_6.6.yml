@@ -59,10 +59,6 @@ jobs:
           fetch-depth: 0
       - name: ⚙️ Set Kernel version config(设置对应内核版本配置文件)
         run: |
-          if [ -z "${{ github.event.inputs.custom_kernel_time }}" ] || [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
-            echo "内核名称 或 构建时间 为空，停止构建。"
-            exit 1
-          fi
           echo "sub_level=${{ github.event.inputs.sub_level }}" >> $GITHUB_ENV
           echo "KERNEL_TIME=${{ github.event.inputs.custom_kernel_time }}" >> $GITHUB_ENV
           case "${{ github.event.inputs.sub_level }}" in
