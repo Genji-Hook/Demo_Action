@@ -15,14 +15,14 @@ on:
         default: '6.6.89'
 
       custom_kernel_suffix:
-        description: "✏️ 自定义内核名称- '格式如下方示例' "
+        description: "✏️ 自定义内核名称"
         required: false
-        default: '-android15-8-g14220ae4ce65-ab13680582-4k'
+        default: ''
       
       custom_kernel_time:
-        description: "⏰ 自定义构建时间- '格式如下方示例' "
+        description: "⏰ 自定义构建时间"
         required: false
-        default: 'Mon Jun 23 07:30:57 UTC 2025'
+        default: ''
 
       enable_feature_a:
         description: "开启BBG基带守护"
@@ -75,6 +75,33 @@ jobs:
               echo "releases=TB322FC_1.1.11.202" >> $GITHUB_ENV
               ;;
           esac
+           if [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
+            case "${{ github.event.inputs.sub_level }}" in
+              6.6.56)
+                echo 'DEFAULT_SUFFIX=-android15-8-g38447e018c92-ab12829524-4k' >> $GITHUB_ENV
+                ;;
+              6.6.89)
+                echo 'DEFAULT_SUFFIX=-android15-8-g14220ae4ce65-ab13680582-4k' >> $GITHUB_ENV
+                ;;
+            esac
+          else
+            echo "使用自定义名称: ${{ github.event.inputs.custom_kernel_suffix }}"
+            echo "DEFAULT_SUFFIX=${{ github.event.inputs.custom_kernel_suffix }}" >> $GITHUB_ENV
+          fi
+          if [ -z "${{ github.event.inputs.custom_kernel_time }}" ]; then
+            case "${{ github.event.inputs.sub_level }}" in
+              6.6.56)
+                echo 'KBUILD_BUILD_TIMESTAMP=Thu Dec 19 17:58:46 UTC 2024' >> $GITHUB_ENV
+                ;;
+              6.6.89)
+                echo 'KBUILD_BUILD_TIMESTAMP=Mon Jun 23 07:30:57 UTC 2025' >> $GITHUB_ENV
+                ;;
+            esac
+          else
+            echo "使用自定义构建时间: ${{ github.event.inputs.custom_kernel_time }}"
+            echo "KBUILD_BUILD_TIMESTAMP=${{ github.event.inputs.custom_kernel_time }}" >> $GITHUB_ENV
+          fi
+
       - name: 🛠 Install dependencies and Initialize repo and sync （安装环境依赖+初始化源码仓库及工具链）
         run: |
           rm -rf kernel_workspace
@@ -293,12 +320,10 @@ jobs:
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
 
       - name: 🔧 Set Kernel name (写入内核名称)
-        env:
-          CUSTOM_SUFFIX: ${{ github.event.inputs.custom_kernel_suffix }}
         run: |
           cd kernel_workspace
-          echo "自定义后缀: $CUSTOM_SUFFIX"
-          ESCAPED_SUFFIX=$(printf '%s\n' "$CUSTOM_SUFFIX" | sed 's:[\/&]:\\&:g')
+          echo "自定义后缀: $DEFAULT_SUFFIX"
+          ESCAPED_SUFFIX=$(printf '%s\n' "$DEFAULT_SUFFIX" | sed 's:[\/&]:\\&:g')
           sudo sed -i "s/-4k/$ESCAPED_SUFFIX/g" ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/${scm_version}//' ./common/scripts/setlocalversion
           
