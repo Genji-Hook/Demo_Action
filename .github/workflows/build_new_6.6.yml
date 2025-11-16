@@ -54,7 +54,7 @@ on:
             - 'Manual_Hook_v1.6'
             - 'TracePoint_Hook_v1.1'
             - 'Syscall_Hook'
-         default: 'Manual_Hook_v1.6'
+         default: 'Syscall_Hook'
 
       enable_feature_b:
          description: "选择网络调度"
@@ -92,32 +92,32 @@ jobs:
               echo "IMAGENAME=Image_Op_13" >> $GITHUB_ENV
               ;;
             oneplus_13t)
-              echo "REPO_BRANCH=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_13t" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_13_T" >> $GITHUB_ENV
               ;;
             oneplus_pad_2_pro)
-              echo "REPO_BRANCH=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_pad_2_pro" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Pad_2_Pro_New" >> $GITHUB_ENV
               ;;
             oneplus_ace5_ultra)
-              echo "REPO_BRANCH=sm8750_v_15.0.0_oneplus_13_global" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_ace5_ultra" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Ace_5_Ultra" >> $GITHUB_ENV
               ;;
             realme_GT7)
-              echo "REPO_BRANCH=14" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "DEVICES_NAME=realme_GT7" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Rm_GT_7" >> $GITHUB_ENV
               ;;
             realme_GT7pro)
-              echo "REPO_BRANCH=14" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "DEVICES_NAME=realme_GT7pro" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Rm_GT_7_Pro" >> $GITHUB_ENV
               ;;
             realme_GT7pro_Speed)
-              echo "REPO_BRANCH=14" >> $GITHUB_ENV
+              echo "REPO_BRANCH=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "DEVICES_NAME=realme_GT7pro_Speed" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Rm_GT_7_Pro_Speed" >> $GITHUB_ENV
               ;;
@@ -129,7 +129,10 @@ jobs:
             oneplus_13)
               echo 'DEFAULT_SUFFIX=-android15-8-gf4dc45704e54-abogki446052083-4k' >> $GITHUB_ENV
               ;;
-            oneplus_ace5_pro | oneplus_13t | oneplus_ace5_ultra | realme_GT7pro_Speed | realme_GT7 | realme_GT7pro)
+            realme_GT7)
+              echo 'DEFAULT_SUFFIX=-android15-8-gd43086512890-abogki423825152-4k' >> $GITHUB_ENV
+              ;;
+            oneplus_ace5_pro | oneplus_13t | oneplus_ace5_ultra | realme_GT7pro_Speed | realme_GT7pro)
               echo 'DEFAULT_SUFFIX=-android15-8-g29d86c5fc9dd-abogki428889875-4k' >> $GITHUB_ENV
               ;;
           esac
@@ -163,16 +166,9 @@ jobs:
           sudo apt update &&
           sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev ccache p7zip-full &
           echo "正在克隆源码仓库..."
-          if [ "${DEVICES_NAME}" = "realme_GT7" ] || [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ]; then
-            aria2c -s16 -x16 -k1M https://github.com/TheGeniusClub/android_kernel_common_oneplus_sm8750/archive/refs/heads/v${REPO_BRANCH}.zip -o common.zip
-            unzip -q common.zip &&
-            mv "android_kernel_common_oneplus_sm8750-${REPO_BRANCH}" common         
-          else
-            aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_BRANCH}.zip -o common.zip
-            unzip -q common.zip && 
-            mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_BRANCH}" common
-          fi
-          
+          aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_BRANCH}.zip -o common.zip
+          unzip -q common.zip && 
+          mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_BRANCH}" common
           rm -rf common.zip 
           
           echo "正在克隆llvm-clang18工具链..." &&
@@ -355,9 +351,9 @@ jobs:
           cp ./SukiSU_patch/69_hide_stuff.patch ./common/
           cd ./common
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
-          if [ "${DEVICES_NAME}" = "oneplus_pad_2_pro" ] || [ "${DEVICES_NAME}" = "oneplus_13t" ]; then
-            sed -i 's|vma = find_vma(mm|struct vm_area_struct *&|' ./fs/proc/task_mmu.c
-          fi
+          # if [ "${DEVICES_NAME}" = "oneplus_pad_2_pro" ] || [ "${DEVICES_NAME}" = "oneplus_13t" ]; then
+          #   sed -i 's|vma = find_vma(mm|struct vm_area_struct *&|' ./fs/proc/task_mmu.c
+          # fi
           if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
             patch -p1 -F 3 < ksu-trace-fixes-6.6.patch || true
           fi
@@ -393,7 +389,7 @@ jobs:
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
           if [ "$ENABLE_D" = "Manual_Hook_v1.6" ] || [ "${ENABLE_D}" = "Syscall_Hook" ]; then
-            echo "CONFIG_KSU_Manual_Hook=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
           fi
           if [ "$ENABLE_D" = "TracePoint_Hook_v1.1" ]; then
             echo "CONFIG_KSU_TRACEPOINT_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
