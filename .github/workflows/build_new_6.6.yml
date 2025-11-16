@@ -54,7 +54,7 @@ on:
             - 'Manual_Hook_v1.6'
             - 'TracePoint_Hook_v1.1'
             - 'Syscall_Hook'
-         default: 'Syscall_Hook'
+         default: 'Manual_Hook_v1.6'
 
       enable_feature_b:
          description: "选择网络调度"
