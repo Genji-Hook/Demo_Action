@@ -46,15 +46,15 @@ on:
         default: true
         type: boolean
       
-      enable_feature_d:
-         description: "选择Hook挂载方式"
-         required: false
-         type: choice
-         options:
-            - 'Manual_Hook_v1.6'
-            - 'TracePoint_Hook_v1.1'
-            - 'Syscall_Hook'
-         default: 'Manual_Hook_v1.6'
+      # enable_feature_d:
+      #    description: "选择Hook挂载方式"
+      #    required: false
+      #    type: choice
+      #    options:
+      #       - 'Manual_Hook_v1.6'
+      #       - 'TracePoint_Hook_v1.1'
+      #       - 'Syscall_Hook'
+      #    default: 'Manual_Hook_v1.6'
 
       enable_feature_b:
          description: "选择网络调度"
@@ -351,17 +351,17 @@ jobs:
           cp ./SukiSU_patch/69_hide_stuff.patch ./common/
           cd ./common
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
-          if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
-            patch -p1 -F 3 < ksu-trace-fixes-6.6.patch || true
-          fi
-          if [ "${ENABLE_D}" = "Manual_Hook_v1.6" ]; then
-            patch -p1 < scope_min_manual_hooks_v1.6.patch || true
-          fi
-          if [ "${ENABLE_D}" = "Syscall_Hook" ]; then
-            patch -p1 < syscall_hooks.patch || true
-          fi
-          patch -p1 < 69_hide_stuff.patch || true
-          echo "${ENABLE_D} 应用完成"
+          # if [ "${ENABLE_D}" = "TracePoint_Hook_v1.1" ]; then
+          #   patch -p1 -F 3 < ksu-trace-fixes-6.6.patch || true
+          # fi
+          # if [ "${ENABLE_D}" = "Manual_Hook_v1.6" ]; then
+          #   patch -p1 < scope_min_manual_hooks_v1.6.patch || true
+          # fi
+          # if [ "${ENABLE_D}" = "Syscall_Hook" ]; then
+          #   patch -p1 < syscall_hooks.patch || true
+          # fi
+          # patch -p1 < 69_hide_stuff.patch || true
+          # echo "${ENABLE_D} 应用完成"
 
       - name: ⚙️ apply lz4 lz4 1.10.0 & zstd 1.5.7 Patch (应用lz4 1.10.0 & zstd 1.5.7补丁)
         run: |
@@ -385,14 +385,14 @@ jobs:
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
-          if [ "$ENABLE_D" = "Manual_Hook_v1.6" ] || [ "${ENABLE_D}" = "Syscall_Hook" ]; then
+          # if [ "$ENABLE_D" = "Manual_Hook_v1.6" ] || [ "${ENABLE_D}" = "Syscall_Hook" ]; then
             echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
-          fi
-          if [ "$ENABLE_D" = "TracePoint_Hook_v1.1" ]; then
-            echo "CONFIG_KSU_TRACEPOINT_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_TRACEPOINT_HOOK_INPUT=y" >> ./common/arch/arm64/configs/gki_defconfig
-            echo "CONFIG_KSU_TRACEPOINT_HOOK_DEVPTS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          fi
+          # fi
+          # if [ "$ENABLE_D" = "TracePoint_Hook_v1.1" ]; then
+          #   echo "CONFIG_KSU_TRACEPOINT_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
+          #   echo "CONFIG_KSU_TRACEPOINT_HOOK_INPUT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          #   echo "CONFIG_KSU_TRACEPOINT_HOOK_DEVPTS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          # fi
           echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4HC=y" >> ./common/arch/arm64/configs/gki_defconfig
