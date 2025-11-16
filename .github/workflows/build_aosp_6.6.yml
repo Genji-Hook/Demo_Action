@@ -10,21 +10,8 @@ on:
         required: true
         type: choice
         options:
-          - '6.6.30'
-          - '6.6.46'
-          - '6.6.50'
           - '6.6.56'
-          - '6.6.57'
-          - '6.6.58'
-          - '6.6.66'
-          - '6.6.77'
-          - '6.6.82'
-          - '6.6.87'
           - '6.6.89'
-          - '6.6.92'
-          - '6.6.98'
-          - '6.6.102'
-          - 'lts'
         default: '6.6.89'
 
       custom_kernel_suffix:
@@ -38,7 +25,7 @@ on:
         default: 'Mon Jun 23 07:30:57 UTC 2025'
 
       enable_feature_a:
-        description: "开启BBG基带保护"
+        description: "开启BBG基带守护"
         required: false
         default: true
         type: boolean
@@ -88,53 +75,12 @@ jobs:
           echo "sub_level=${{ github.event.inputs.sub_level }}" >> $GITHUB_ENV
           echo "KERNEL_TIME=${{ github.event.inputs.custom_kernel_time }}" >> $GITHUB_ENV
           case "${{ github.event.inputs.sub_level }}" in
-            6.6.30)
-              echo "os_patch_level=2024-07_r10" >> $GITHUB_ENV
-              echo "gz_branch=tags">> $GITHUB_ENV
-              ;;
-            6.6.46)
-              echo "os_patch_level=2024-09" >> $GITHUB_ENV
-              ;;
-            6.6.50)
-              echo "os_patch_level=2024-10" >> $GITHUB_ENV
-              ;;
             6.6.56)
               echo "os_patch_level=2024-11" >> $GITHUB_ENV
-              ;;
-            6.6.57)
-              echo "os_patch_level=2024-12" >> $GITHUB_ENV
-              ;;
-            6.6.58)
-              echo "os_patch_level=2025-01" >> $GITHUB_ENV
-              ;;
-            6.6.66)
-              echo "os_patch_level=2025-02" >> $GITHUB_ENV
-              ;;
-            6.6.77)
-              echo "os_patch_level=2025-03" >> $GITHUB_ENV
-              ;;
-            6.6.82)
-              echo "os_patch_level=2025-04" >> $GITHUB_ENV
-              ;;
-            6.6.87)
-              echo "os_patch_level=2025-05" >> $GITHUB_ENV
               ;;
             6.6.89)
               echo "os_patch_level=2025-06" >> $GITHUB_ENV
               ;;
-            6.6.92)
-              echo "os_patch_level=2025-07" >> $GITHUB_ENV
-              ;;
-            6.6.98)
-              echo "os_patch_level=2025-09" >> $GITHUB_ENV
-              ;;
-            6.6.102)
-              echo "os_patch_level=2025-10" >> $GITHUB_ENV
-              ;;
-            lts)
-              echo "os_patch_level=lts" >> $GITHUB_ENV
-            
-            
           esac
       - name: 🛠 Install dependencies and Initialize repo and sync （安装环境依赖+初始化源码仓库及工具链）
         run: |
@@ -181,9 +127,9 @@ jobs:
           echo "CCACHE_MAXSIZE=3G" >> $GITHUB_ENV
           echo "当前磁盘空间："
           df -h
-          echo "当前构建内核机型：${{ env.sub_level }}"
+          echo "当前构建内核版本：${{ env.sub_level }}"
 
-      - name: 📥 Restore ccache (载入当前机型的ccache缓存)
+      - name: 📥 Restore ccache (载入当前内核版本的ccache缓存)
         uses: actions/cache@v4
         id: ccache-restore
         with:
@@ -268,7 +214,7 @@ jobs:
           cd ./common
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
           case "$sub_level" in
-            6.6.30|6.6.46|6.6.50|6.6.56|6.6.57|6.6.58)
+            6.6.56)
               sed -i 's|vma = find_vma(mm|struct vm_area_struct *&|' ./fs/proc/task_mmu.c
               ;;
           esac
