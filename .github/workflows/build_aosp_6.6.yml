@@ -68,7 +68,7 @@ jobs:
           case "${{ github.event.inputs.sub_level }}" in
             6.6.56)
               echo "os_patch_level=2024-11" >> $GITHUB_ENV
-              echo "releases=TB322FC_1.1.11.188" >> $GITHUB_ENV
+              echo "releases=TB322FC_1.1.11.120" >> $GITHUB_ENV
               ;;
             6.6.89)
               echo "os_patch_level=2025-06" >> $GITHUB_ENV
