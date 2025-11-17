@@ -259,7 +259,6 @@ jobs:
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4HC=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -448,13 +447,13 @@ jobs:
         if: ${{inputs.enable_feature_d}}
         run: |
           cd kernel_workspace
-          aria2c -s16 -x16 -k1M "https://github.com/showdo/AOSP_REBUILD_AVB_BOOT/archive/refs/heads/main.tar.gz" -o boot_avb_tool.tar.gz && \
+          aria2c -s16 -x16 -k1M "https://github.com/showdo/AOSP-Testkey-BootSigner/archive/refs/heads/main.tar.gz" -o boot_avb_tool.tar.gz && \
           mkdir -p boot_avb_tool && \
           tar -xzf boot_avb_tool.tar.gz -C boot_avb_tool && \
           rm -f boot_avb_tool.tar.gz && \
-          cp ./common/out/arch/arm64/boot/Image ./boot_avb_tool/AOSP_REBUILD_AVB_BOOT-main/kernel
-          cd boot_avb_tool/AOSP_REBUILD_AVB_BOOT-main && \
-          curl -L -o boot.img https://github.com/showdo/AOSP_REBUILD_AVB_BOOT/releases/download/${{ env.releases }}/boot.img
+          cp ./common/out/arch/arm64/boot/Image ./boot_avb_tool/AOSP-Testkey-BootSigner-main/kernel
+          cd boot_avb_tool/AOSP-Testkey-BootSigner-main && \
+          curl -L -o boot.img https://github.com/showdo/AOSP-Testkey-BootSigner/releases/download/${{ env.releases }}/boot.img
           chmod +x ./tools/magiskboot
           ./tools/magiskboot repack boot.img
           rm -f ./boot.img kernel
@@ -466,4 +465,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
          name: Boot_${{ env.KSUVER }}_${{ env.sub_level }}_SuKiSU_AOSP_Signed
-         path: kernel_workspace/boot_avb_tool/AOSP_REBUILD_AVB_BOOT-main/boot.img
+         path: kernel_workspace/boot_avb_tool/AOSP-Testkey-BootSigner-main/boot.img
