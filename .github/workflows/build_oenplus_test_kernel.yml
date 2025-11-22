@@ -89,7 +89,7 @@ jobs:
               echo "IMAGENAME=Image_Op_13" >> $GITHUB_ENV
               echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
               ;;
-            oneplus_ace_6)
+            oneplus_ace6)
               echo "REPO_BRANCH=sm8750_b_16.0.0_ace_6" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_ace6" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Ace_6" >> $GITHUB_ENV
