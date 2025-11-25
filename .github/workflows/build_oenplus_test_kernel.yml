@@ -16,6 +16,7 @@ on:
           - 'realme_GT7'
           - 'realme_GT7pro'
           - 'realme_GT7pro_Speed'
+          - 'realme_GT8'
         default: 'oneplus_ace5_pro'
 
       keep_original_settings:
@@ -128,6 +129,9 @@ jobs:
               echo "IMAGENAME=Image_Rm_GT_7_Pro_Speed" >> $GITHUB_ENV
               echo "SCHED_FILE=none" >> $GITHUB_ENV
               ;;
+            realme_GT8)
+              echo "DEVICES_NAME=realme_GT7pro_Speed" >> $GITHUB_ENV
+              echo "SCHED_FILE=none" >> $GITHUB_ENV
           esac
           case "${{ github.event.inputs.REPO_MANIFEST }}" in
             oneplus_pad_2_pro)
