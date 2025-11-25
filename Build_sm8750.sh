@@ -20,20 +20,23 @@ ENABLE_LZ4KD=true
 
 # 机型选择
 info "请选择要编译的机型："
-info "1. 一加 Ace 5 Pro"
-info "2. 一加 13"
-info "3.一加 13T"
-info "4.一加 Pad 2 Pro"
-info "5.一加 Ace5 至尊版"
-info "6.真我 GT 7 Pro"
-info "7.真我 GT 7 Pro 竞速"
+info "1. 一加 13"
+info "2. 一加 Ace 5 Pro"
+info "3.一加 Ace 6"
+info "4.一加 13T"
+info "5.一加 Pad 2 Pro"
+info "6.一加 Ace5 至尊版"
+info "7.真我 GT 7"
+info "8.真我 GT 7 Pro"
+info "9.真我 GT 7 Pro 竞速"
+info "10.真我 GT 8"
 
-read -p "输入选择 [1-4]: " device_choice
+read -p "输入选择 [1-10]: " device_choice
 
 case $device_choice in
     1)
         DEVICE_NAME="oneplus_ace5_pro"
-        REPO_MANIFEST="JiuGeFaCai_oneplus_ace5_pro_v.xml"
+        REPO_MANIFEST="sm8750_b_16.0.0_oneplus_ace5_pro.xml"
         KERNEL_TIME="Tue Dec 17 23:36:49 UTC 2024"
         KERNEL_SUFFIX="-android15-8-g013ec21bba94-abogki383916444-4k"
         ;;
