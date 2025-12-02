@@ -399,7 +399,7 @@ jobs:
           
       - name: 🔧 Apply Sched Patch (应用完美风驰补丁)
         run: |
-          if [ "${{ env.ENABLE_FEATURE_Z }}" = "true" ]; then
+          if [ "${{ env.ENABLE_SCX }}" = "true" ]; then
             if [ "$SCHED_FILE" = "none" ]; then
               echo "该机型自带风驰，跳过应用补丁"
             else
