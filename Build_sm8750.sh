@@ -152,36 +152,36 @@ mkdir -p "$KERNEL_WORKSPACE" || error "无法创建kernel_workspace目录"
 
 cd "$KERNEL_WORKSPACE" || error "无法进入kernel_workspace目录"
 
-sudo apt-mark hold firefox &&
-sudo apt-mark hold libc-bin &&
-sudo apt purge man-db &&
-sudo rm -rf /var/lib/man-db/auto-update &&
-sudo apt update &&
-sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev dos2unix ccache p7zip-full aria2c &
+sudo apt-mark hold firefox
+sudo apt-mark hold libc-bin 
+sudo apt purge man-db 
+sudo rm -rf /var/lib/man-db/auto-update 
+sudo apt update 
+sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev dos2unix ccache p7zip-full aria2c
 info "正在克隆源码仓库..."
 if [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ] || [ "${DEVICES_NAME}" = "realme_GT8" ]; then
   aria2c -s16 -x16 -k1M https://github.com/realme-kernel-opensource/realme_GT7pro-AndroidB-common-source/archive/refs/heads/master.zip -o common.zip
-  unzip -q common.zip && 
+  unzip -q common.zip  
   mv "realme_GT7pro-AndroidB-common-source-master" common
 elif [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ]; then
   aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_oneplus_mt6991/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
-  unzip -q common.zip && 
+  unzip -q common.zip  
   mv "android_kernel_oneplus_mt6991-oneplus-${REPO_MANIFEST}" common
 else
   aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
-  unzip -q common.zip && 
+  unzip -q common.zip  
   mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common
 fi
 rm -rf common.zip 
 info "正在克隆llvm-clang18工具链..."
-mkdir -p clang18 &&
-aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang18-r510928/clang-r510928.zip -o clang.zip &&
-unzip -q clang.zip -d clang18 &&
-rm -rf clang.zip &
-info "正在克隆构建工具..." &&
-aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang18-r510928/build-tools.zip -o build-tools.zip &&
-unzip -q build-tools.zip &&
-rm -rf build-tools.zip &
+mkdir -p clang18 
+aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang18-r510928/clang-r510928.zip -o clang.zip 
+unzip -q clang.zip -d clang18 
+rm -rf clang.zip 
+info "正在克隆构建工具..." 
+aria2c -s16 -x16 -k1M https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang18-r510928/build-tools.zip -o build-tools.zip 
+unzip -q build-tools.zip 
+rm -rf build-tools.zip 
 wait
 info "所有源码及llvm-Clang18工具链初始化完成！"
 info "正在去除 ABI 保护 & 去除 dirty 后缀..."
