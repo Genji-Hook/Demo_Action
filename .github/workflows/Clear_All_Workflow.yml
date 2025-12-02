@@ -7,16 +7,10 @@ on:
         type: choice
         description: '清理的工作流名称'
         required: true
-        default: 'Build_scx_6.6'
+        default: 'Build_oneplus_sm8750'
         options:
-          - Build_Action
-          - Build_All_release
-          - Build_new_6.6
-          - Build_scx_6.6
-          - Build_aosp_6.6
-          - Build_cctv_6.6.66
-          - Build_TracePoint_Hook
-          - Build_security_BBG
+          - Build_oneplus_sm8750
+          - build_Lenovo_sm8750
           - Encrypt_script
       count:
         description: '最多清理的运行次数'
