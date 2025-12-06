@@ -41,12 +41,6 @@ on:
         default: true
         type: boolean
 
-      enable_scx:
-        description: "添加完美风驰"
-        required: false
-        default: true
-        type: boolean
-
       enable_BBG:
         description: "开启BBG基带守护"
         required: false
@@ -75,7 +69,6 @@ jobs:
       CUSTOM_KERNEL_SUFFIX:   ${{ github.event.inputs.custom_kernel_suffix }}
       CUSTOM_KERNEL_TIME:     ${{ github.event.inputs.custom_kernel_time }}
       ENABLE_SERIALID_CHECK:       ${{ github.event.inputs.enable_serialid_check }}
-      ENABLE_SCX:       ${{ github.event.inputs.enable_scx }}
       ENABLE_BBG:       ${{ github.event.inputs.enable_BBG }}
       ENABLE_NET_WORK:       ${{ github.event.inputs.enable_NET_WORK }}
     steps:
@@ -86,51 +79,41 @@ jobs:
         run: |
           case "${{ env.DEVICES_NAME }}" in
             oneplus_ace5_pro)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_ace5_pro" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Ace_5_Pro" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace5_pro_b" >> $GITHUB_ENV
               ;;
             oneplus_13)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_13" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_13" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13_b" >> $GITHUB_ENV
               ;;
             oneplus_ace_6)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_ace_6" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Ace_6" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace_6" >> $GITHUB_ENV
               ;;
             oneplus_13t)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_13t" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_13_T" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_13t_b" >> $GITHUB_ENV
               ;;
             oneplus_pad_2_pro)
-              echo "REPO_MANIFEST=sm8750_b_16.0.0_pad_2_pro" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=sm8750_v_16.0.0_oneplus_13_6.6.89" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Pad_2_Pro_New" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_pad_2_pro_b" >> $GITHUB_ENV
               ;;
             oneplus_ace5_ultra)
-              echo "REPO_MANIFEST=mt6991_v_15.0.2_ace5_ultra" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=mt6991_v_15.0.2_ace5_ultra_6.6.89" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Op_Ace_5_Ultra" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace5_ultra" >> $GITHUB_ENV
               ;;
             realme_GT7)
-              echo "REPO_MANIFEST=mt6991_v_15.0.2_ace5_ultra" >> $GITHUB_ENV
+              echo "REPO_MANIFEST=mt6991_v_15.0.2_ace5_ultra_6.6.89" >> $GITHUB_ENV
               echo "IMAGENAME=Image_Rm_GT_7" >> $GITHUB_ENV
-              echo "SCHED_FILE=oneplus_ace5_ultra" >> $GITHUB_ENV
               ;;
             realme_GT7pro)
               echo "IMAGENAME=Image_Rm_GT_7_Pro" >> $GITHUB_ENV
-              echo "SCHED_FILE=none" >> $GITHUB_ENV
               ;;
             realme_GT7pro_Speed)
               echo "IMAGENAME=Image_Rm_GT_7_Pro_Speed" >> $GITHUB_ENV
-              echo "SCHED_FILE=none" >> $GITHUB_ENV
               ;;
             realme_GT8)
               echo "IMAGENAME=Image_Rm_GT_8" >> $GITHUB_ENV
-              echo "SCHED_FILE=none" >> $GITHUB_ENV
           esac
           if [ "${{ env.KEEP_ORIGINAL_SETTINGS }}" = "true" ] && [ -z "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
             case "${{ env.DEVICES_NAME }}" in
@@ -186,16 +169,12 @@ jobs:
           sudo apt update &&
           sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev dos2unix ccache p7zip-full &
           echo "正在克隆源码仓库..."
-          if [ "${DEVICES_NAME}" = "realme_GT7pro" ] || [ "${DEVICES_NAME}" = "realme_GT7pro_Speed" ] || [ "${DEVICES_NAME}" = "realme_GT8" ]; then
-            aria2c -s16 -x16 -k1M https://github.com/realme-kernel-opensource/realme_GT7pro-AndroidB-common-source/archive/refs/heads/master.zip -o common.zip
-            unzip -q common.zip && 
-            mv "realme_GT7pro-AndroidB-common-source-master" common
-          elif [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ]; then
-            aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_oneplus_mt6991/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
+          if [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ]; then
+            aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_oneplus_mt6991/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
             unzip -q common.zip && 
             mv "android_kernel_oneplus_mt6991-oneplus-${REPO_MANIFEST}" common
           else
-            aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
+            aria2c -s16 -x16 -k1M https://github.com/cctv18/android_kernel_common_oneplus_sm8750/archive/refs/heads/oneplus/${REPO_MANIFEST}.zip -o common.zip
             unzip -q common.zip && 
             mv "android_kernel_common_oneplus_sm8750-oneplus-${REPO_MANIFEST}" common
           fi
@@ -437,39 +416,6 @@ jobs:
           ESCAPED_SUFFIX=$(printf '%s\n' "$DEFAULT_SUFFIX" | sed 's:[\/&]:\\&:g')
           sudo sed -i "s/-4k/$ESCAPED_SUFFIX/g" ./common/arch/arm64/configs/gki_defconfig
           sed -i 's/${scm_version}//' ./common/scripts/setlocalversion
-          
-      - name: 🔧 Apply Sched Patch (应用完美风驰补丁)
-        run: |
-          if [ "${{ env.ENABLE_SCX }}" = "true" ]; then
-            if [ "$SCHED_FILE" = "none" ]; then
-              echo "该机型自带风驰，跳过应用补丁"
-            else
-              cd kernel_workspace/common
-              if [ "${DEVICES_NAME}" = "oneplus_ace5_ultra" ] || [ "${DEVICES_NAME}" = "realme_GT7" ]; then
-                git clone https://github.com/Numbersf/SCHED_PATCH.git -b "mt6991"
-              else
-                git clone https://github.com/Numbersf/SCHED_PATCH.git -b "sm8750"
-              fi
-              echo "正在拉取风驰补丁"
-              cp ./SCHED_PATCH/fengchi_${{env.SCHED_FILE}}.patch ./
-              if [[ -f "fengchi_${{env.SCHED_FILE}}.patch" ]]; then
-                echo "开始应用风驰补丁"
-                dos2unix "fengchi_${{env.SCHED_FILE}}.patch"
-                patch -p1 -F 3 < "fengchi_${{env.SCHED_FILE}}.patch"
-                echo "完美风驰补丁应用完成"
-              else
-                echo "❌ 未匹配到补丁，风驰补丁暂未支持该机型"
-                exit 11
-              fi
-            fi
-          else
-            echo "未启用风驰，则需应用OGKI转换GKI补丁"
-              sed -i '1iobj-y += hmbird_patch.o' drivers/Makefile
-               cp "${GITHUB_WORKSPACE}/.github/workflows/tools/hmbird_patch.patch" ./hmbird_patch.patch
-              echo "正在打OGKI转换GKI补丁"
-              patch -p1 -F 3 < hmbird_patch.patch
-              echo "OGKI转换GKI_patch完成"
-          fi
 
       - name: 🔨 Build Kernel (构建内核)
         run: |
