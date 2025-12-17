@@ -354,9 +354,9 @@ jobs:
           cp ./SukiSU_patch/69_hide_stuff.patch ./common/
           cd ./common
           patch -p1 < 50_add_susfs_in_gki-android15-6.6.patch || true
-          wget https://raw.githubusercontent.com/Anatdx/HymoFS/refs/heads/main/patch/hymofs_with_susfs.patch
-          patch -p1 -F 3 < hymofs_with_susfs.patch
-          echo "CONFIG_HYMOFS=y" >> ./arch/arm64/configs/gki_defconfig
+          # wget https://raw.githubusercontent.com/Anatdx/HymoFS/refs/heads/main/patch/hymofs_with_susfs.patch
+          # patch -p1 -F 3 < hymofs_with_susfs.patch
+          # echo "CONFIG_HYMOFS=y" >> ./arch/arm64/configs/gki_defconfig
 
 
 
