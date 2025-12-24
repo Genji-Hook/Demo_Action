@@ -87,7 +87,7 @@ jobs:
           case "${{ env.DEVICES_NAME }}" in
             oneplus_ace5_pro)
               echo "REPO_MANIFEST=sm8750_b_16.0.0_oneplus_ace5_pro" >> $GITHUB_ENV
-              cho "IMAGENAME=Image_Op_Ace_5_Pro" >> $GITHUB_ENV
+              echo "IMAGENAME=Image_Op_Ace_5_Pro" >> $GITHUB_ENV
               echo "SCHED_FILE=oneplus_ace5_pro_b" >> $GITHUB_ENV
               ;;
             oneplus_13)
